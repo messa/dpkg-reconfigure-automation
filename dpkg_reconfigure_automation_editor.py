@@ -19,9 +19,9 @@ from sys import exit, stderr
 
 def get_locales():
     """Yield locales to generate, including Czech on .cz servers."""
-    yield "en_US.UTF-8 UTF-8"
     if getfqdn().endswith(".cz"):
         yield "cs_CZ.UTF-8 UTF-8"
+    yield "en_US.UTF-8 UTF-8"
 
 
 def get_config_values() -> dict[str | Pattern, str]:
