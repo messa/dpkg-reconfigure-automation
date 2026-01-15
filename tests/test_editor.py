@@ -17,6 +17,7 @@ def test_script_help():
 
 def test_script_processes_file_in_place(tmp_path):
     content = dedent("""\
+        # (Choices: en_US.UTF-8 UTF-8, cs_CZ.UTF-8 UTF-8)
         # Locales to be generated:
         locales/locales_to_be_generated=""
         """)
@@ -57,8 +58,10 @@ def test_script_does_not_modify_file_on_unknown_key(tmp_path):
 
 def test_script_processes_tzdata(tmp_path):
     content = dedent("""\
+        # (Choices: Europe, None of the above)
         # Geographic area:
         tzdata/Areas="Europe"
+        # (Choices: Prague, UTC)
         # Time zone:
         tzdata/Zones/Europe="Prague"
         """)
