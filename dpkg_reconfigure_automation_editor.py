@@ -31,12 +31,10 @@ class ConfigValues:
     """Configuration values with exact keys and regex patterns."""
 
     def __init__(self):
-        # Do you need to add your own configuration options here?
+        # Do you need to add your own configuration options?
+        # Use CLI arguments: script.py key=value key2=value2 file.txt
         #
-        # - Copy this file and add it :)
-        # - Open a PR if you think it would be great to share it
-        # - Or describe your use case in a GitHub Issue and we can think
-        #   about how to add options dynamically in some way (env vars etc.)
+        # Want to add defaults here? Open a PR or GitHub Issue!
 
         self.exact = {
             "tzdata/Areas": "None of the above",
