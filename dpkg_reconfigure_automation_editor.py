@@ -44,14 +44,14 @@ def setup_logging(verbosity):
 class ConfigValues:
     """Configuration values with exact keys."""
 
-    def __init__(self):
+    def __init__(self, content: str | None = None):
         # Do you need to add your own configuration options?
         # Use CLI arguments: script.py key=value key2=value2 file.txt
         #
         # Want to add defaults here? Open a PR or GitHub Issue!
 
         self.exact = {
-            "tzdata/Areas": "None of the above",
+            "tzdata/Areas": "None of the above" if (content and "None of the above" in content) else "Etc",
             "tzdata/Zones/Etc": "UTC",
             "locales/locales_to_be_generated": lambda: ", ".join(sorted(self.get_locales())),
             "locales/default_environment_locale": "en_US.UTF-8",
@@ -185,7 +185,9 @@ def main(args=None):
     logger.info("Processing file: %s", filepath)
     logger.debug("Overrides: %s", overrides)
 
-    config = ConfigValues()
+    content = filepath.read_text()
+
+    config = ConfigValues(content=content)
     for override in overrides:
         if "=" not in override:
             print(f"Error: Invalid override format: {override!r} (expected key=value)", file=stderr)
@@ -193,8 +195,6 @@ def main(args=None):
         key, value = override.split("=", 1)
         logger.debug("Adding override: %s = %s", key, value)
         config.add_override(key, value)
-
-    content = filepath.read_text()
 
     # Write debug "before" file
     debug_prefix = None
