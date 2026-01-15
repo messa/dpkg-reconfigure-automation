@@ -213,7 +213,6 @@ def main(args=None):
     if unknown_keys:
         for key in unknown_keys:
             logger.error("Unknown configuration key: %s", key)
-            print(f"Error: Unknown configuration key: {key}", file=stderr)
         exit(1)
 
     filepath.write_text(processed)
