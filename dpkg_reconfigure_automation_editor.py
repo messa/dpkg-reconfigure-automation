@@ -35,7 +35,7 @@ class ConfigValues:
         #
         # - Copy this file and add it :)
         # - Open a PR if you think it would be great to share it
-        # - Or describe your use case in an Github Issue and we can think
+        # - Or describe your use case in a GitHub Issue and we can think
         #   about how to add options dynamically in some way (env vars etc.)
 
         self.exact = {
