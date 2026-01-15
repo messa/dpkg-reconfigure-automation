@@ -53,14 +53,14 @@ def test_config_values_unknown():
 
 def test_tzdata_sets_area_to_etc():
     content = 'tzdata/Areas="Europe"'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert 'tzdata/Areas="None of the above"' in result
     assert unknown == []
 
 
 def test_tzdata_sets_zone_to_utc():
     content = 'tzdata/Zones/Etc="GMT"'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert 'tzdata/Zones/Etc="UTC"' in result
     assert unknown == []
 
@@ -76,7 +76,7 @@ def test_tzdata_full_config():
 
         ###############################################################################
         # Instructions...""")
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert 'tzdata/Areas="None of the above"' in result
     assert "# You are using" in result
     assert "# Instructions" in result
@@ -101,7 +101,7 @@ def test_get_locales_returns_czech_and_english_on_cz_server():
 
 def test_locales_sets_locales_to_generate():
     content = 'locales/locales_to_be_generated=""'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     # Value depends on FQDN - on .cz servers includes cs_CZ locale
     assert 'locales/locales_to_be_generated="' in result
     assert "en_US.UTF-8 UTF-8" in result
@@ -110,7 +110,7 @@ def test_locales_sets_locales_to_generate():
 
 def test_locales_sets_default_locale():
     content = 'locales/default_environment_locale="cs_CZ.UTF-8"'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert 'locales/default_environment_locale="en_US.UTF-8"' in result
     assert unknown == []
 
@@ -126,7 +126,7 @@ def test_locales_full_config():
 
         ###############################################################################
         # Instructions...""")
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     # Value depends on FQDN - on .cz servers includes cs_CZ locale
     assert 'locales/locales_to_be_generated="' in result
     assert "en_US.UTF-8 UTF-8" in result
@@ -139,7 +139,7 @@ def test_locales_full_config():
 
 def test_unknown_key_is_reported():
     content = 'some-other-package/option="something"'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert unknown == ["some-other-package/option"]
 
 
@@ -148,7 +148,7 @@ def test_multiple_unknown_keys():
         unknown/key1="value1"
         unknown/key2="value2"
         """)
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert "unknown/key1" in unknown
     assert "unknown/key2" in unknown
 
@@ -158,7 +158,7 @@ def test_mixed_known_and_unknown_keys():
         tzdata/Areas="Europe"
         unknown/key="value"
         """)
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert 'tzdata/Areas="None of the above"' in result
     assert unknown == ["unknown/key"]
 
@@ -179,7 +179,7 @@ def test_only_comments():
         # Another comment
         ###############################################################################
         """)
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert "# Comment line" in result
     assert "# Another comment" in result
     assert unknown == []
@@ -191,7 +191,7 @@ def test_preserves_comments():
         # Another comment
         locales/locales_to_be_generated=""
         # Trailing comment""")
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert "# Comment line" in result
     assert "# Another comment" in result
     assert "# Trailing comment" in result
@@ -200,7 +200,7 @@ def test_preserves_comments():
 
 def test_handles_empty_value():
     content = 'locales/locales_to_be_generated=""'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     # Value depends on FQDN - on .cz servers includes cs_CZ locale
     assert 'locales/locales_to_be_generated="' in result
     assert "en_US.UTF-8 UTF-8" in result
@@ -209,7 +209,7 @@ def test_handles_empty_value():
 
 def test_handles_existing_value():
     content = 'locales/locales_to_be_generated="cs_CZ.UTF-8 UTF-8, de_DE.UTF-8 UTF-8"'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     # Value depends on FQDN - on .cz servers includes cs_CZ locale
     assert 'locales/locales_to_be_generated="' in result
     assert "en_US.UTF-8 UTF-8" in result
@@ -218,14 +218,14 @@ def test_handles_existing_value():
 
 def test_preserves_trailing_newline():
     content = 'locales/locales_to_be_generated=""\n'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert result.endswith("\n")
     assert unknown == []
 
 
 def test_no_trailing_newline_when_input_has_none():
     content = 'locales/locales_to_be_generated=""'
-    result, unknown, _ = process_content(content, check=False)
+    result, unknown, _ = process_content(content)
     assert not result.endswith("\n")
     assert unknown == []
 
@@ -239,19 +239,21 @@ def test_tzdata_accepts_value_when_in_choices():
         # Geographic area:
         tzdata/Areas="Europe"
         """)
-    result, unknown, unknown_values = process_content(content, check=True)
+    result, unknown, unknown_values = process_content(content)
     assert 'tzdata/Areas="None of the above"' in result
     assert unknown == []
     assert unknown_values == []
 
 
-def test_tzdata_rejects_value_when_not_in_choices():
+def test_tzdata_warns_when_value_not_in_choices():
     content = dedent("""\
         # (Choices: Africa, Americas, Europe)
         # Geographic area:
         tzdata/Areas="Europe"
         """)
-    result, unknown, unknown_values = process_content(content, check=True)
+    result, unknown, unknown_values = process_content(content)
+    # Value is set even when not in choices
+    assert 'tzdata/Areas="None of the above"' in result
     assert unknown == []
     assert "None of the above" in unknown_values
 
@@ -262,7 +264,7 @@ def test_tzdata_zone_accepts_utc_when_in_choices():
         # Time zone:
         tzdata/Zones/Etc="GMT"
         """)
-    result, unknown, unknown_values = process_content(content, check=True)
+    result, unknown, unknown_values = process_content(content)
     assert 'tzdata/Zones/Etc="UTC"' in result
     assert unknown == []
     assert unknown_values == []
@@ -274,7 +276,7 @@ def test_locales_accepts_value_when_in_choices():
         # Locales to be generated:
         locales/locales_to_be_generated=""
         """)
-    result, unknown, unknown_values = process_content(content, check=True)
+    result, unknown, unknown_values = process_content(content)
     # Value depends on FQDN - on .cz servers includes cs_CZ locale
     assert 'locales/locales_to_be_generated="' in result
     assert "en_US.UTF-8 UTF-8" in result
@@ -282,13 +284,16 @@ def test_locales_accepts_value_when_in_choices():
     assert unknown_values == []
 
 
-def test_locales_rejects_value_when_not_in_choices():
+def test_locales_warns_when_value_not_in_choices():
     content = dedent("""\
         # (Choices: cs_CZ.UTF-8 UTF-8, de_DE.UTF-8 UTF-8)
         # Locales to be generated:
         locales/locales_to_be_generated=""
         """)
-    result, unknown, unknown_values = process_content(content, check=True)
+    result, unknown, unknown_values = process_content(content)
+    # Value is set even when not in choices
+    assert 'locales/locales_to_be_generated="' in result
+    assert "en_US.UTF-8 UTF-8" in result
     assert unknown == []
     # Value depends on FQDN - the full value string should be in unknown_values
     assert len(unknown_values) == 1
@@ -329,23 +334,11 @@ def test_process_content_with_custom_config():
         # (Choices: Shanghai, Tokyo)
         tzdata/Zones/Asia="Tokyo"
         """)
-    result, unknown, unknown_values = process_content(content, check=True, config=config)
+    result, unknown, unknown_values = process_content(content, config=config)
     assert 'tzdata/Areas="Asia"' in result
     assert 'tzdata/Zones/Asia="Shanghai"' in result
     assert unknown == []
     assert unknown_values == []
-
-
-def test_check_defaults_to_true():
-    # Without explicit check=False, the check should be performed
-    content = dedent("""\
-        # (Choices: Africa, Americas, Europe)
-        # Geographic area:
-        tzdata/Areas="Europe"
-        """)
-    result, unknown, unknown_values = process_content(content)  # No check parameter
-    assert unknown == []
-    assert "None of the above" in unknown_values
 
 
 def test_full_tzdata_content_with_check():
@@ -364,7 +357,7 @@ def test_full_tzdata_content_with_check():
         ###########################################################################################
         # The editor-based debconf frontend presents you with one or more text files to edit.
         """)
-    result, unknown, unknown_values = process_content(content, check=True)
+    result, unknown, unknown_values = process_content(content)
     assert 'tzdata/Areas="None of the above"' in result
     assert unknown == []
     assert unknown_values == []
@@ -386,7 +379,7 @@ def test_full_tzdata_zones_content_with_check():
         ###########################################################################################
         # The editor-based debconf frontend presents you with one or more text files to edit.
         """)
-    result, unknown, unknown_values = process_content(content, check=True)
+    result, unknown, unknown_values = process_content(content)
     assert 'tzdata/Zones/Etc="UTC"' in result
     assert unknown == []
     assert unknown_values == []

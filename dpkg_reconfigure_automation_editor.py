@@ -41,12 +41,6 @@ def setup_logging(verbosity):
     getLogger("").addHandler(h)
 
 
-class MissingChoiceError(Exception):
-    """Raised when the configured value is not present in the available choices."""
-
-    pass
-
-
 class ConfigValues:
     """Configuration values with exact keys."""
 
@@ -104,17 +98,14 @@ def parse_line(line: str) -> tuple[str, str] | None:
 
 
 def process_content(
-    content: str, check: bool = True, config: ConfigValues | None = None
+    content: str, config: ConfigValues | None = None
 ) -> tuple[str, list[str], list[str]]:
     """
     Process the content and return (processed_content, unknown_keys, unknown_values).
 
     Only processes non-empty, non-comment lines.
     Returns list of unknown keys that were encountered and list of values
-    that were not present in the content (when check=True).
-
-    If check=True (default), validates that new values are present in content
-    (usually listed in the Choices comment).
+    that were not present in the content (usually in Choices comment).
 
     If config is provided, it will be used instead of creating a new ConfigValues.
     """
@@ -144,16 +135,16 @@ def process_content(
             unknown_keys.append(key)
             result_lines.append(line)
         else:
-            if check and new_value not in content:
+            if new_value not in content:
                 # Usually the content contains a list of all permitted values.
                 # The new_value seems to not be amongst them.
-                logger.error(
-                    "Wanted to update %r to value %r, but content does not contain string %r",
+                logger.warning(
+                    "Updating %r to value %r, but content does not contain string %r",
                     stripped, new_value, new_value)
                 unknown_values.append(new_value)
             else:
                 logger.debug("Updating %r to value %r", stripped, new_value)
-                result_lines.append(f'{key}="{new_value}"' + ending)
+            result_lines.append(f'{key}="{new_value}"' + ending)
 
     return "".join(result_lines), unknown_keys, unknown_values
 
