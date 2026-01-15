@@ -26,14 +26,17 @@ def get_locales(fqdn: str | None = None):
     yield "en_US.UTF-8 UTF-8"
 
 
-def get_config_values() -> dict[str | Pattern, str]:
-    """Return configuration values mapping keys (or regex patterns) to values."""
-    return {
+def get_config_values() -> tuple[dict[str, str], dict[Pattern, str]]:
+    """Return configuration values as (exact_keys, pattern_keys) dictionaries."""
+    exact = {
         "tzdata/Areas": "Etc",
-        compile(r"tzdata/Zones/.+"): "UTC",
         "locales/locales_to_be_generated": ", ".join(get_locales()),
         "locales/default_environment_locale": "en_US.UTF-8",
     }
+    patterns = {
+        compile(r"tzdata/Zones/.+"): "UTC",
+    }
+    return exact, patterns
 
 
 def parse_line(line: str) -> tuple[str, str] | None:
@@ -52,15 +55,17 @@ def parse_line(line: str) -> tuple[str, str] | None:
     return key, value
 
 
-def find_config_value(key: str, config_values: dict[str | Pattern, str]) -> str | None:
+def find_config_value(
+    exact: dict[str, str], patterns: dict[Pattern, str], key: str
+) -> str | None:
     """Find the configured value for a key, supporting regex patterns."""
     # First try exact match
-    if key in config_values:
-        return config_values[key]
+    if key in exact:
+        return exact[key]
 
     # Then try regex patterns
-    for pattern, value in config_values.items():
-        if isinstance(pattern, Pattern) and pattern.fullmatch(key):
+    for pattern, value in patterns.items():
+        if pattern.fullmatch(key):
             return value
 
     return None
@@ -73,7 +78,7 @@ def process_content(content: str) -> tuple[str, list[str]]:
     Only processes non-empty, non-comment lines.
     Returns list of unknown keys that were encountered.
     """
-    config_values = get_config_values()
+    exact, patterns = get_config_values()
     lines = content.splitlines()
     result_lines = []
     unknown_keys = []
@@ -86,7 +91,7 @@ def process_content(content: str) -> tuple[str, list[str]]:
             continue
 
         key, _old_value = parsed
-        new_value = find_config_value(key, config_values)
+        new_value = find_config_value(exact, patterns, key)
 
         if new_value is None:
             unknown_keys.append(key)
