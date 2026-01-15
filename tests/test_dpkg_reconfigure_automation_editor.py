@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Tests for dpkg-reconfigure-automation-editor.py"""
 
-import tempfile
-import os
+from importlib import import_module
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 import sys
 
 import pytest
 
 # Import the module under test
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from importlib import import_module
+sys.path.insert(0, str(Path(__file__).parent.parent))
 editor = import_module('dpkg-reconfigure-automation-editor')
 
 
@@ -142,35 +142,22 @@ def test_main_processes_file_in_place():
     content = """Name: locales/locales_to_be_generated
 Value: cs_CZ.UTF-8 UTF-8
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+    with NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
         f.write(content)
-        filepath = f.name
+        filepath = Path(f.name)
 
     try:
-        original_argv = sys.argv
-        sys.argv = ['dpkg-reconfigure-automation-editor', filepath]
-        try:
-            editor.main()
-        finally:
-            sys.argv = original_argv
-
-        with open(filepath, 'r') as f:
-            result = f.read()
-
+        editor.main([str(filepath)])
+        result = filepath.read_text()
         assert "en_US.UTF-8 UTF-8" in result
     finally:
-        os.unlink(filepath)
+        filepath.unlink()
 
 
 def test_main_missing_argument_exits():
-    original_argv = sys.argv
-    sys.argv = ['dpkg-reconfigure-automation-editor']
-    try:
-        with pytest.raises(SystemExit) as exc_info:
-            editor.main()
-        assert exc_info.value.code == 1
-    finally:
-        sys.argv = original_argv
+    with pytest.raises(SystemExit) as exc_info:
+        editor.main([])
+    assert exc_info.value.code == 2  # argparse exits with 2 for missing arguments
 
 
 # Edge case tests

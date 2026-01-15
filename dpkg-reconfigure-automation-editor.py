@@ -10,8 +10,9 @@ Supported packages:
 - locales: sets locale to en_US.UTF-8
 """
 
-import sys
-import re
+from argparse import ArgumentParser
+from pathlib import Path
+from re import match
 
 
 def process_tzdata(content: str) -> str:
@@ -27,15 +28,15 @@ def process_tzdata(content: str) -> str:
             continue
 
         # Set Area to "Etc" for UTC
-        match = re.match(r'^(Value:\s*)(.*)$', line)
-        if match and result and 'tzdata/Areas' in result[-1]:
-            result.append(f'{match.group(1)}Etc')
+        m = match(r'^(Value:\s*)(.*)$', line)
+        if m and result and 'tzdata/Areas' in result[-1]:
+            result.append(f'{m.group(1)}Etc')
             continue
 
         # Set Zone to "UTC"
         if result and 'tzdata/Zones' in ''.join(result[-3:]):
-            if match:
-                result.append(f'{match.group(1)}UTC')
+            if m:
+                result.append(f'{m.group(1)}UTC')
                 continue
 
         result.append(line)
@@ -63,13 +64,13 @@ def process_locales(content: str) -> str:
             in_default_locale = False
 
         # Modify values
-        match = re.match(r'^(Value:\s*)(.*)$', line)
-        if match:
+        m = match(r'^(Value:\s*)(.*)$', line)
+        if m:
             if in_locales_to_generate:
-                result.append(f'{match.group(1)}en_US.UTF-8 UTF-8')
+                result.append(f'{m.group(1)}en_US.UTF-8 UTF-8')
                 continue
             elif in_default_locale:
-                result.append(f'{match.group(1)}en_US.UTF-8')
+                result.append(f'{m.group(1)}en_US.UTF-8')
                 continue
 
         result.append(line)
@@ -88,22 +89,17 @@ def detect_and_process(content: str) -> str:
         return content
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: dpkg-reconfigure-automation-editor <file>", file=sys.stderr)
-        sys.exit(1)
+def main(args=None):
+    parser = ArgumentParser(
+        description='Automate dpkg-reconfigure by modifying debconf editor files'
+    )
+    parser.add_argument('file', help='Path to the debconf editor file')
+    parsed = parser.parse_args(args)
 
-    filepath = sys.argv[1]
-
-    # Read the file
-    with open(filepath, 'r') as f:
-        content = f.read()
-
-    # Process and write back
+    filepath = Path(parsed.file)
+    content = filepath.read_text()
     processed = detect_and_process(content)
-
-    with open(filepath, 'w') as f:
-        f.write(processed)
+    filepath.write_text(processed)
 
 
 if __name__ == '__main__':
