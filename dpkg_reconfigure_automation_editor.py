@@ -12,13 +12,14 @@ Supported packages:
 
 from argparse import ArgumentParser
 from pathlib import Path
-from re import compile, Pattern
+from re import compile
 from socket import getfqdn
 from sys import exit, stderr
 
 
 class MissingChoiceError(Exception):
     """Raised when the configured value is not present in the available choices."""
+
     pass
 
 
@@ -90,8 +91,8 @@ def process_content(content: str, check: bool = True) -> tuple[str, list[str]]:
 
     for line in lines:
         # Preserve line ending (e.g. '\n' or '\r\n')
-        stripped = line.rstrip('\r\n')
-        ending = line[len(stripped):]
+        stripped = line.rstrip("\r\n")
+        ending = line[len(stripped) :]
 
         parsed = parse_line(stripped)
         if parsed is None:
@@ -109,7 +110,7 @@ def process_content(content: str, check: bool = True) -> tuple[str, list[str]]:
             if check and new_value not in content:
                 # Usually the content contains a list of all permitted values.
                 # The new_value seems to not be amongst them.
-                raise MissingChoiceError(f'Content does not contain string {new_value!r}')
+                raise MissingChoiceError(f"Content does not contain string {new_value!r}")
             result_lines.append(f'{key}="{new_value}"' + ending)
 
     return "".join(result_lines), unknown_keys
@@ -117,9 +118,9 @@ def process_content(content: str, check: bool = True) -> tuple[str, list[str]]:
 
 def main(args=None):
     parser = ArgumentParser(
-        description='Automate dpkg-reconfigure by modifying debconf editor files'
+        description="Automate dpkg-reconfigure by modifying debconf editor files"
     )
-    parser.add_argument('file', help='Path to the debconf editor file')
+    parser.add_argument("file", help="Path to the debconf editor file")
     parsed = parser.parse_args(args)
 
     filepath = Path(parsed.file)
@@ -134,5 +135,5 @@ def main(args=None):
     filepath.write_text(processed)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
