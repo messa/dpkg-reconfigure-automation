@@ -6,7 +6,7 @@ Example:
 
 ```shell
 # Setup
-curl -fLsS https://raw.githubusercontent.com/messa/dpkg-reconfigure-automation/main/dpkg-reconfigure-automation-editor -o /usr/local/bin/dpkg-reconfigure-automation-editor
+curl -fLsS https://raw.githubusercontent.com/messa/dpkg-reconfigure-automation/main/dpkg-reconfigure-automation-editor.py -o /usr/local/bin/dpkg-reconfigure-automation-editor
 chmod +x /usr/local/bin/dpkg-reconfigure-automation-editor
 
 # Usage
