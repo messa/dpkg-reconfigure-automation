@@ -58,22 +58,9 @@ class ConfigValues:
         elif (fqdn or getfqdn()).endswith(".cz"):
             yield "cs_CZ.UTF-8 UTF-8"
 
-    def add_overrides(self, overrides: list[str]) -> None:
-        """
-        Add override values from key=value strings.
-
-        These overrides take precedence over default values.
-        """
-        for override in overrides:
-            if "=" not in override:
-                raise ValueError(f"Invalid override format: {override!r} (expected key=value)")
-            key, value = override.split("=", 1)
-            # Remove quotes from value if present
-            if value.startswith('"') and value.endswith('"'):
-                value = value[1:-1]
-            elif value.startswith("'") and value.endswith("'"):
-                value = value[1:-1]
-            self.exact[key] = value
+    def add_override(self, key: str, value: str) -> None:
+        """Add an override value that takes precedence over defaults."""
+        self.exact[key] = value
 
     def get(self, key: str) -> str | None:
         """Find the configured value for a key, supporting regex patterns.
@@ -180,11 +167,12 @@ def main(args=None):
     overrides = parsed.overrides_and_file[:-1]
 
     config = ConfigValues()
-    try:
-        config.add_overrides(overrides)
-    except ValueError as e:
-        print(f"Error: {e}", file=stderr)
-        exit(1)
+    for override in overrides:
+        if "=" not in override:
+            print(f"Error: Invalid override format: {override!r} (expected key=value)", file=stderr)
+            exit(1)
+        key, value = override.split("=", 1)
+        config.add_override(key, value)
 
     content = filepath.read_text()
     processed, unknown_keys = process_content(content, config=config)
