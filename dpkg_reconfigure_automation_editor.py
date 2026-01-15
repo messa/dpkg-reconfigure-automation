@@ -13,7 +13,7 @@ Supported packages:
 from argparse import ArgumentParser
 from datetime import datetime, timezone
 from logging import DEBUG, ERROR, Formatter, INFO, StreamHandler, getLogger
-from os import environ
+from os import environ, getpid
 from pathlib import Path
 from socket import getfqdn
 from sys import exit, stderr
@@ -150,9 +150,9 @@ def process_content(
 
 
 def generate_debug_prefix():
-    """Generate debug file prefix with timestamp."""
+    """Generate debug file prefix with timestamp and PID."""
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    return f"/tmp/dpkg_reconfigure_automation_editor.{ts}"
+    return f"/tmp/dpkg_reconfigure_automation_editor.{ts}.{getpid()}"
 
 
 def main(args=None):
