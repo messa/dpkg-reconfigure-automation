@@ -68,20 +68,27 @@ def parse_line(line: str) -> tuple[str, str] | None:
     return key, value
 
 
-def process_content(content: str) -> tuple[str, list[str]]:
+def process_content(content: str, check: bool = True) -> tuple[str, list[str]]:
     """
     Process the content and return (processed_content, unknown_keys).
 
     Only processes non-empty, non-comment lines.
     Returns list of unknown keys that were encountered.
+
+    If check=True (default), validates that new values are present in content
+    (usually listed in the Choices comment).
     """
     config = ConfigValues()
-    lines = content.splitlines()
+    lines = content.splitlines(True)
     result_lines = []
     unknown_keys = []
 
     for line in lines:
-        parsed = parse_line(line)
+        # Preserve line ending (e.g. '\n' or '\r\n')
+        stripped = line.rstrip('\r\n')
+        ending = line[len(stripped):]
+
+        parsed = parse_line(stripped)
         if parsed is None:
             # Empty line or comment - keep as-is
             result_lines.append(line)
@@ -94,14 +101,13 @@ def process_content(content: str) -> tuple[str, list[str]]:
             unknown_keys.append(key)
             result_lines.append(line)
         else:
-            if new_value not in content:
+            if check and new_value not in content:
                 # Usually the content contains a list of all permitted values.
-                # Tne new_value seems to not be amongst them.
+                # The new_value seems to not be amongst them.
                 raise Exception(f'Content does not contain string {new_value!r}')
-            result_lines.append(f'{key}="{new_value}"')
+            result_lines.append(f'{key}="{new_value}"' + ending)
 
-    result = "\n".join(line + "\n" for line in result_lines)
-    return result, unknown_keys
+    return "".join(result_lines), unknown_keys
 
 
 def main(args=None):
