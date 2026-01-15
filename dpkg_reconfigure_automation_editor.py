@@ -97,9 +97,7 @@ def parse_line(line: str) -> tuple[str, str] | None:
     return key, value
 
 
-def process_content(
-    content: str, config: ConfigValues | None = None
-) -> tuple[str, list[str], list[str]]:
+def process_content(content: str, config: ConfigValues | None = None) -> tuple[str, list[str], list[str]]:
     """
     Process the content and return (processed_content, unknown_keys, unknown_values).
 
@@ -139,8 +137,8 @@ def process_content(
                 # Usually the content contains a list of all permitted values.
                 # The new_value seems to not be amongst them.
                 logger.warning(
-                    "Updating %r to value %r, but content does not contain string %r",
-                    stripped, new_value, new_value)
+                    "Updating %r to value %r, but content does not contain string %r", stripped, new_value, new_value
+                )
                 unknown_values.append(new_value)
             else:
                 logger.debug("Updating %r to value %r", stripped, new_value)
@@ -156,12 +154,11 @@ def generate_debug_prefix():
 
 
 def main(args=None):
-    parser = ArgumentParser(
-        description="Automate dpkg-reconfigure by modifying debconf editor files"
-    )
+    parser = ArgumentParser(description="Automate dpkg-reconfigure by modifying debconf editor files")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="count",
         default=0,
         help="Increase verbosity (can be repeated: -v for INFO, -vv for DEBUG)",
@@ -210,9 +207,9 @@ def main(args=None):
     processed, unknown_keys, unknown_values = process_content(content, config=config)
 
     if unknown_keys:
-        print('ERROR: Unknown configuration key(s):', ', '.join(unknown_keys), file=stderr)
+        print("ERROR: Unknown configuration key(s):", ", ".join(unknown_keys), file=stderr)
     if unknown_values:
-        print('ERROR: Unknown values (they are not present in the content):', ', '.join(unknown_values), file=stderr)
+        print("ERROR: Unknown values (they are not present in the content):", ", ".join(unknown_values), file=stderr)
     if unknown_keys or unknown_values:
         exit(1)
 
