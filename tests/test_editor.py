@@ -9,6 +9,12 @@ from textwrap import dedent
 SCRIPT_PATH = Path(__file__).parent.parent / 'dpkg_reconfigure_automation_editor.py'
 
 
+def test_script_help():
+    result = run([executable, str(SCRIPT_PATH), '--help'], capture_output=True)
+    assert result.returncode == 0
+    assert b'usage:' in result.stdout
+
+
 def test_script_processes_file_in_place(tmp_path):
     content = dedent("""\
         # Locales to be generated:
