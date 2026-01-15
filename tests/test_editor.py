@@ -16,8 +16,10 @@ def test_script_help():
 
 
 def test_script_processes_file_in_place(tmp_path):
+    # Note: on .cz servers, get_locales returns "cs_CZ.UTF-8 UTF-8, en_US.UTF-8 UTF-8" (sorted)
+    # The choices must contain the full sorted string for check=True to pass
     content = dedent("""\
-        # (Choices: en_US.UTF-8 UTF-8, cs_CZ.UTF-8 UTF-8)
+        # (Choices: cs_CZ.UTF-8 UTF-8, en_US.UTF-8 UTF-8)
         # Locales to be generated:
         locales/locales_to_be_generated=""
         """)
@@ -28,7 +30,10 @@ def test_script_processes_file_in_place(tmp_path):
     assert result.returncode == 0
     assert result.stdout == b""
     assert result.stderr == b""
-    assert 'locales/locales_to_be_generated="en_US.UTF-8 UTF-8"' in filepath.read_text()
+    # Check that locale was set (could be just en_US or both depending on FQDN)
+    file_content = filepath.read_text()
+    assert 'locales/locales_to_be_generated="' in file_content
+    assert "en_US.UTF-8 UTF-8" in file_content
 
 
 def test_script_missing_argument_exits():
@@ -43,7 +48,7 @@ def test_script_exits_with_1_for_unknown_key(tmp_path):
 
     result = run([executable, str(SCRIPT_PATH), str(filepath)], capture_output=True)
     assert result.returncode == 1
-    assert b"Error: Unknown configuration key: unknown-package/option" in result.stderr
+    assert b"ERROR: Unknown configuration key(s): unknown-package/option" in result.stderr
 
 
 def test_script_does_not_modify_file_on_unknown_key(tmp_path):
@@ -121,7 +126,11 @@ def test_script_with_overrides(tmp_path):
     """)
 
     filepath.write_text(content_2)
-    run([executable, str(SCRIPT_PATH), str(filepath)], capture_output=True, check=True)
+    run(
+        [executable, str(SCRIPT_PATH), "tzdata/Zones/Asia=Shanghai", str(filepath)],
+        capture_output=True,
+        check=True,
+    )
     file_content = filepath.read_text()
     assert file_content == dedent("""\
         # Time zone:

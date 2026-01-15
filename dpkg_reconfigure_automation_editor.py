@@ -105,12 +105,13 @@ def parse_line(line: str) -> tuple[str, str] | None:
 
 def process_content(
     content: str, check: bool = True, config: ConfigValues | None = None
-) -> tuple[str, list[str]]:
+) -> tuple[str, list[str], list[str]]:
     """
-    Process the content and return (processed_content, unknown_keys).
+    Process the content and return (processed_content, unknown_keys, unknown_values).
 
     Only processes non-empty, non-comment lines.
-    Returns list of unknown keys that were encountered.
+    Returns list of unknown keys that were encountered and list of values
+    that were not present in the content (when check=True).
 
     If check=True (default), validates that new values are present in content
     (usually listed in the Choices comment).
@@ -218,7 +219,7 @@ def main(args=None):
     processed, unknown_keys, unknown_values = process_content(content, config=config)
 
     if unknown_keys:
-        print('ERROR: Unknown configuration keys:', ', '.join(unknown_keys), file=stderr)
+        print('ERROR: Unknown configuration key(s):', ', '.join(unknown_keys), file=stderr)
     if unknown_values:
         print('ERROR: Unknown values (they are not present in the content):', ', '.join(unknown_values), file=stderr)
     if unknown_keys or unknown_values:
