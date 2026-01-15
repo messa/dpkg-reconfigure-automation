@@ -11,19 +11,12 @@ Supported packages:
 """
 
 from argparse import ArgumentParser
-from importlib.metadata import version, PackageNotFoundError
 from pathlib import Path
 from re import compile
 from socket import getfqdn
 from sys import exit, stderr
 
-
-def get_version() -> str:
-    """Get the package version from metadata or return development version."""
-    try:
-        return version("dpkg-reconfigure-automation")
-    except PackageNotFoundError:
-        return "unknown"
+__version__ = "0.1.0"
 
 
 class MissingChoiceError(Exception):
@@ -130,7 +123,7 @@ def main(args=None):
         description="Automate dpkg-reconfigure by modifying debconf editor files"
     )
     parser.add_argument(
-        "--version", action="version", version=f"%(prog)s {get_version()}"
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
     parser.add_argument("file", help="Path to the debconf editor file")
     parsed = parser.parse_args(args)
