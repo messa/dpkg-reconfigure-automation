@@ -32,10 +32,24 @@ EDITOR=dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor tzdata
 EDITOR=dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor locales
 ```
 
+### Custom values
+
+You can specify custom values as `key=value` arguments:
+
+```shell
+EDITOR="dpkg-reconfigure-automation-editor tzdata/Areas=Asia tzdata/Zones/Asia=Shanghai" dpkg-reconfigure -f editor tzdata
+```
+
+Values with spaces need to be quoted:
+
+```shell
+EDITOR="dpkg-reconfigure-automation-editor 'tzdata/Areas=None of the above' tzdata/Zones/Etc=UTC" dpkg-reconfigure -f editor tzdata
+```
+
 ## What does it do
 
-- For tzdata, it chooses the UTC timezone
-- For locales, it chooses `en_US.UTF-8`
+- For tzdata, it chooses the UTC timezone (by default)
+- For locales, it chooses `en_US.UTF-8` (by default)
 
 ## Running tests
 

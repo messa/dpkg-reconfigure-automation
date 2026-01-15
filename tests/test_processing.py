@@ -305,6 +305,46 @@ def test_locales_rejects_value_when_not_in_choices():
     assert "Content does not contain string 'en_US.UTF-8 UTF-8'" in str(exc_info.value)
 
 
+# Tests for add_override
+
+
+def test_add_override_adds_to_exact():
+    config = ConfigValues()
+    config.add_override("tzdata/Areas", "Asia")
+    assert config.get("tzdata/Areas") == "Asia"
+
+
+def test_add_override_overrides_default():
+    config = ConfigValues()
+    assert config.get("tzdata/Areas") == "None of the above"
+    config.add_override("tzdata/Areas", "Europe")
+    assert config.get("tzdata/Areas") == "Europe"
+
+
+def test_add_override_multiple_values():
+    config = ConfigValues()
+    config.add_override("tzdata/Areas", "Asia")
+    config.add_override("tzdata/Zones/Asia", "Shanghai")
+    assert config.get("tzdata/Areas") == "Asia"
+    assert config.get("tzdata/Zones/Asia") == "Shanghai"
+
+
+def test_process_content_with_custom_config():
+    config = ConfigValues()
+    config.add_override("tzdata/Areas", "Asia")
+    config.add_override("tzdata/Zones/Asia", "Shanghai")
+    content = dedent("""\
+        # (Choices: Asia, Europe, None of the above)
+        tzdata/Areas="Europe"
+        # (Choices: Shanghai, Tokyo)
+        tzdata/Zones/Asia="Tokyo"
+        """)
+    result, unknown = process_content(content, check=True, config=config)
+    assert 'tzdata/Areas="Asia"' in result
+    assert 'tzdata/Zones/Asia="Shanghai"' in result
+    assert unknown == []
+
+
 def test_check_defaults_to_true():
     # Without explicit check=False, the check should be performed
     content = dedent("""\

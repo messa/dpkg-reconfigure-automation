@@ -73,3 +73,66 @@ def test_script_processes_tzdata(tmp_path):
     file_content = filepath.read_text()
     assert 'tzdata/Areas="None of the above"' in file_content
     assert 'tzdata/Zones/Europe="UTC"' in file_content
+
+
+def test_script_with_overrides(tmp_path):
+    content = dedent("""\
+        # (Choices: Asia, Europe, None of the above)
+        # Geographic area:
+        tzdata/Areas="Europe"
+        # (Choices: Shanghai, Tokyo)
+        # Time zone:
+        tzdata/Zones/Asia="Tokyo"
+        """)
+    filepath = tmp_path / "config.txt"
+    filepath.write_text(content)
+
+    result = run(
+        [
+            executable,
+            str(SCRIPT_PATH),
+            "tzdata/Areas=Asia",
+            "tzdata/Zones/Asia=Shanghai",
+            str(filepath),
+        ],
+        capture_output=True,
+    )
+    assert result.returncode == 0
+    file_content = filepath.read_text()
+    assert 'tzdata/Areas="Asia"' in file_content
+    assert 'tzdata/Zones/Asia="Shanghai"' in file_content
+
+
+def test_script_with_override_with_spaces(tmp_path):
+    content = dedent("""\
+        # (Choices: Europe, None of the above)
+        # Geographic area:
+        tzdata/Areas="Europe"
+        """)
+    filepath = tmp_path / "config.txt"
+    filepath.write_text(content)
+
+    result = run(
+        [
+            executable,
+            str(SCRIPT_PATH),
+            "tzdata/Areas=None of the above",
+            str(filepath),
+        ],
+        capture_output=True,
+    )
+    assert result.returncode == 0
+    file_content = filepath.read_text()
+    assert 'tzdata/Areas="None of the above"' in file_content
+
+
+def test_script_with_invalid_override(tmp_path):
+    filepath = tmp_path / "config.txt"
+    filepath.write_text("tzdata/Areas=Europe")
+
+    result = run(
+        [executable, str(SCRIPT_PATH), "invalid-no-equals", str(filepath)],
+        capture_output=True,
+    )
+    assert result.returncode == 1
+    assert b"Invalid override format" in result.stderr

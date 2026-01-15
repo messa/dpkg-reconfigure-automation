@@ -58,16 +58,26 @@ class ConfigValues:
         elif (fqdn or getfqdn()).endswith(".cz"):
             yield "cs_CZ.UTF-8 UTF-8"
 
+    def add_override(self, key: str, value: str) -> None:
+        """Add an override value that takes precedence over defaults."""
+        self.exact[key] = value
+
     def get(self, key: str) -> str | None:
-        """Find the configured value for a key, supporting regex patterns."""
+        """Find the configured value for a key, supporting regex patterns.
+
+        Exact matches take priority over pattern matches.
+        """
         result_value = None
 
+        # First check exact matches (they have priority)
         if key in self.exact:
             result_value = self.exact[key]
-
-        for pattern, value in self.patterns.items():
-            if pattern.fullmatch(key):
-                result_value = value
+        else:
+            # Only check patterns if no exact match found
+            for pattern, value in self.patterns.items():
+                if pattern.fullmatch(key):
+                    result_value = value
+                    break
 
         if callable(result_value):
             # in case it is a lambda
@@ -92,7 +102,9 @@ def parse_line(line: str) -> tuple[str, str] | None:
     return key, value
 
 
-def process_content(content: str, check: bool = True) -> tuple[str, list[str]]:
+def process_content(
+    content: str, check: bool = True, config: ConfigValues | None = None
+) -> tuple[str, list[str]]:
     """
     Process the content and return (processed_content, unknown_keys).
 
@@ -101,8 +113,11 @@ def process_content(content: str, check: bool = True) -> tuple[str, list[str]]:
 
     If check=True (default), validates that new values are present in content
     (usually listed in the Choices comment).
+
+    If config is provided, it will be used instead of creating a new ConfigValues.
     """
-    config = ConfigValues()
+    if config is None:
+        config = ConfigValues()
     lines = content.splitlines(True)
     result_lines = []
     unknown_keys = []
@@ -139,12 +154,28 @@ def main(args=None):
         description="Automate dpkg-reconfigure by modifying debconf editor files"
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    parser.add_argument("file", help="Path to the debconf editor file")
+    parser.add_argument(
+        "overrides_and_file",
+        nargs="+",
+        metavar="[key=value ...] file",
+        help="Optional key=value overrides followed by the path to the debconf editor file",
+    )
     parsed = parser.parse_args(args)
 
-    filepath = Path(parsed.file)
+    # Last argument is the file, the rest are overrides
+    filepath = Path(parsed.overrides_and_file[-1])
+    overrides = parsed.overrides_and_file[:-1]
+
+    config = ConfigValues()
+    for override in overrides:
+        if "=" not in override:
+            print(f"Error: Invalid override format: {override!r} (expected key=value)", file=stderr)
+            exit(1)
+        key, value = override.split("=", 1)
+        config.add_override(key, value)
+
     content = filepath.read_text()
-    processed, unknown_keys = process_content(content)
+    processed, unknown_keys = process_content(content, config=config)
 
     if unknown_keys:
         for key in unknown_keys:
