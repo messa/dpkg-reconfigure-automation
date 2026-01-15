@@ -6,14 +6,15 @@ Example:
 
 ```shell
 # Setup
-curl -fLsS https://raw.githubusercontent.com/messa/dpkg-reconfigure-automation/refs/heads/main/... -o /usr/local/bin/...
+curl -fLsS https://raw.githubusercontent.com/messa/dpkg-reconfigure-automation/main/dpkg-reconfigure-automation-editor.py -o /usr/local/bin/dpkg-reconfigure-automation-editor
+chmod +x /usr/local/bin/dpkg-reconfigure-automation-editor
 
 # Usage
-EDITOR=/usr/local/bin/... dpkg-reconfigure -f editor tzdata
-EDITOR=/usr/local/bin/... dpkg-reconfigure -f editor locales
+EDITOR=/usr/local/bin/dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor tzdata
+EDITOR=/usr/local/bin/dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor locales
 ```
 
 What does it do:
 
-- For tzdata, it choses the UTC timezone
-- For locales, it choses `en_US.UTF-8`
+- For tzdata, it chooses the UTC timezone
+- For locales, it chooses `en_US.UTF-8`
