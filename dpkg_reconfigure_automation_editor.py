@@ -94,11 +94,13 @@ def process_content(content: str) -> tuple[str, list[str]]:
             unknown_keys.append(key)
             result_lines.append(line)
         else:
+            if new_value not in content:
+                # Usually the content contains a list of all permitted values.
+                # Tne new_value seems to not be amongst them.
+                raise Exception(f'Content does not contain string {new_value!r}')
             result_lines.append(f'{key}="{new_value}"')
 
-    result = "\n".join(result_lines)
-    if content.endswith("\n"):
-        result += "\n"
+    result = "\n".join(line + "\n" for line in result_lines)
     return result, unknown_keys
 
 
