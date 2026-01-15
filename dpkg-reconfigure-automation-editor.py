@@ -12,77 +12,52 @@ Supported packages:
 
 from argparse import ArgumentParser
 from pathlib import Path
-from re import match
+from re import match, sub
 
 
 def process_tzdata(content: str) -> str:
     """Configure tzdata to use UTC timezone."""
-    lines = content.split('\n')
-    result = []
-
-    for line in lines:
-        # Handle Area selection (e.g., "Europe" -> "Etc" for UTC)
-        if line.startswith('Name: tzdata/Areas'):
-            # Find the value line (next non-comment line with "Value:")
-            result.append(line)
-            continue
-
-        # Set Area to "Etc" for UTC
-        m = match(r'^(Value:\s*)(.*)$', line)
-        if m and result and 'tzdata/Areas' in result[-1]:
-            result.append(f'{m.group(1)}Etc')
-            continue
-
-        # Set Zone to "UTC"
-        if result and 'tzdata/Zones' in ''.join(result[-3:]):
-            if m:
-                result.append(f'{m.group(1)}UTC')
-                continue
-
-        result.append(line)
-
-    return '\n'.join(result)
+    # Set Areas to Etc
+    content = sub(
+        r'^(tzdata/Areas=)".*"',
+        r'\1"Etc"',
+        content,
+        flags=8  # re.MULTILINE
+    )
+    # Set timezone to UTC (for any Zones/* question)
+    content = sub(
+        r'^(tzdata/Zones/[^=]+=)".*"',
+        r'\1"UTC"',
+        content,
+        flags=8  # re.MULTILINE
+    )
+    return content
 
 
 def process_locales(content: str) -> str:
     """Configure locales to use en_US.UTF-8."""
-    lines = content.split('\n')
-    result = []
-    in_locales_to_generate = False
-    in_default_locale = False
-
-    for line in lines:
-        # Track which question we're in
-        if 'locales/locales_to_be_generated' in line:
-            in_locales_to_generate = True
-            in_default_locale = False
-        elif 'locales/default_environment_locale' in line:
-            in_locales_to_generate = False
-            in_default_locale = True
-        elif line.startswith('Name:'):
-            in_locales_to_generate = False
-            in_default_locale = False
-
-        # Modify values
-        m = match(r'^(Value:\s*)(.*)$', line)
-        if m:
-            if in_locales_to_generate:
-                result.append(f'{m.group(1)}en_US.UTF-8 UTF-8')
-                continue
-            elif in_default_locale:
-                result.append(f'{m.group(1)}en_US.UTF-8')
-                continue
-
-        result.append(line)
-
-    return '\n'.join(result)
+    # Set locales to generate
+    content = sub(
+        r'^(locales/locales_to_be_generated=)".*"',
+        r'\1"en_US.UTF-8 UTF-8"',
+        content,
+        flags=8  # re.MULTILINE
+    )
+    # Set default locale
+    content = sub(
+        r'^(locales/default_environment_locale=)".*"',
+        r'\1"en_US.UTF-8"',
+        content,
+        flags=8  # re.MULTILINE
+    )
+    return content
 
 
 def detect_and_process(content: str) -> str:
     """Detect package type and process accordingly."""
-    if 'tzdata/Areas' in content or 'tzdata/Zones' in content:
+    if 'tzdata/Areas=' in content or 'tzdata/Zones/' in content:
         return process_tzdata(content)
-    elif 'locales/locales_to_be_generated' in content or 'locales/default_environment_locale' in content:
+    elif 'locales/locales_to_be_generated=' in content or 'locales/default_environment_locale=' in content:
         return process_locales(content)
     else:
         # Unknown package, return unchanged
