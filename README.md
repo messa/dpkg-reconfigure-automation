@@ -18,3 +18,10 @@ What does it do:
 
 - For tzdata, it chooses the UTC timezone
 - For locales, it chooses `en_US.UTF-8`
+
+## Running tests
+
+```shell
+pip install pytest
+pytest
+```
