@@ -16,6 +16,7 @@ from re import compile, Pattern
 from socket import getfqdn
 from sys import exit, stderr
 
+# Also update version in pyproject.toml
 __version__ = "0.1.0"
 
 
