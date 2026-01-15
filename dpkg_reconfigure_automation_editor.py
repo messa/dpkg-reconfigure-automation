@@ -73,7 +73,7 @@ class ConfigValues:
             # in case it is a lambda
             result_value = result_value()
 
-        return None
+        return result_value
 
 
 def parse_line(line: str) -> tuple[str, str] | None:
