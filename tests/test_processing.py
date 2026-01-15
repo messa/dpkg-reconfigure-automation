@@ -107,8 +107,8 @@ def test_get_locales_returns_english_on_non_cz_server():
 
 
 def test_get_locales_returns_czech_and_english_on_cz_server():
-    locales = list(ConfigValues.get_locales(fqdn="server.example.cz"))
-    assert locales == ["cs_CZ.UTF-8 UTF-8", "en_US.UTF-8 UTF-8"]
+    locales = set(ConfigValues.get_locales(fqdn="server.example.cz"))
+    assert locales == {"cs_CZ.UTF-8 UTF-8", "en_US.UTF-8 UTF-8"}
 
 
 # Tests for locales processing

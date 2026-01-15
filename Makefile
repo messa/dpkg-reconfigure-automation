@@ -1,7 +1,7 @@
 default: check
 
 check:
-	uv run pytest tests/
+	uv run pytest -v --tb=short tests/
 
 lint:
 	uv run ruff check .
