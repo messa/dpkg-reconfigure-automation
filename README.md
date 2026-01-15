@@ -32,13 +32,6 @@ EDITOR=dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor tzdata
 EDITOR=dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor locales
 ```
 
-After manual installation:
-
-```shell
-EDITOR=/usr/local/bin/dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor tzdata
-EDITOR=/usr/local/bin/dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor locales
-```
-
 ## What does it do
 
 - For tzdata, it chooses the UTC timezone
