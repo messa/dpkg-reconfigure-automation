@@ -58,12 +58,12 @@ def test_script_does_not_modify_file_on_unknown_key(tmp_path):
 
 def test_script_processes_tzdata(tmp_path):
     content = dedent("""\
-        # (Choices: Europe, None of the above)
+        # (Choices: GMT, UTC, None of the above)
         # Geographic area:
-        tzdata/Areas="Europe"
-        # (Choices: Prague, UTC)
+        tzdata/Areas="GMT"
+        # (Choices: GMT, UTC)
         # Time zone:
-        tzdata/Zones/Europe="Prague"
+        tzdata/Zones/Etc="GMT"
         """)
     filepath = tmp_path / "config.txt"
     filepath.write_text(content)
@@ -72,7 +72,7 @@ def test_script_processes_tzdata(tmp_path):
     assert result.returncode == 0
     file_content = filepath.read_text()
     assert 'tzdata/Areas="None of the above"' in file_content
-    assert 'tzdata/Zones/Europe="UTC"' in file_content
+    assert 'tzdata/Zones/Etc="UTC"' in file_content
 
 
 def test_script_with_overrides(tmp_path):

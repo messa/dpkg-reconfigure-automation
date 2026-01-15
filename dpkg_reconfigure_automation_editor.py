@@ -15,7 +15,6 @@ from datetime import datetime, timezone
 from logging import DEBUG, ERROR, Formatter, INFO, StreamHandler, getLogger
 from os import environ
 from pathlib import Path
-from re import compile
 from socket import getfqdn
 from sys import exit, stderr
 
@@ -48,7 +47,7 @@ class MissingChoiceError(Exception):
 
 
 class ConfigValues:
-    """Configuration values with exact keys and regex patterns."""
+    """Configuration values with exact keys."""
 
     def __init__(self):
         # Do you need to add your own configuration options?
@@ -61,9 +60,6 @@ class ConfigValues:
             "tzdata/Zones/Etc": "UTC",
             "locales/locales_to_be_generated": lambda: ", ".join(sorted(self.get_locales())),
             "locales/default_environment_locale": "en_US.UTF-8",
-        }
-        self.patterns = {
-            compile(r"tzdata/Zones/.+"): "UTC",
         }
 
     @staticmethod
@@ -81,24 +77,10 @@ class ConfigValues:
         self.exact[key] = value
 
     def get(self, key: str) -> str | None:
-        """Find the configured value for a key, supporting regex patterns.
-
-        Exact matches take priority over pattern matches.
-        """
-        result_value = None
-
-        # First check exact matches (they have priority)
-        if key in self.exact:
-            result_value = self.exact[key]
-        else:
-            # Only check patterns if no exact match found
-            for pattern, value in self.patterns.items():
-                if pattern.fullmatch(key):
-                    result_value = value
-                    break
+        """Find the configured value for a key."""
+        result_value = self.exact.get(key)
 
         if callable(result_value):
-            # in case it is a lambda
             result_value = result_value()
 
         return result_value

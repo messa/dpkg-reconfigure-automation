@@ -43,13 +43,6 @@ def test_config_values_exact_match():
     assert config.get("locales/locales_to_be_generated") == "en_US.UTF-8 UTF-8"
 
 
-def test_config_values_pattern_match():
-    config = ConfigValues()
-    assert config.get("tzdata/Zones/Etc") == "UTC"
-    assert config.get("tzdata/Zones/Europe") == "UTC"
-    assert config.get("tzdata/Zones/America") == "UTC"
-
-
 def test_config_values_unknown():
     config = ConfigValues()
     assert config.get("unknown/key") is None
@@ -70,13 +63,6 @@ def test_tzdata_sets_zone_to_utc():
     content = 'tzdata/Zones/Etc="GMT"'
     result, unknown = process_content(content, check=False)
     assert 'tzdata/Zones/Etc="UTC"' in result
-    assert unknown == []
-
-
-def test_tzdata_sets_any_zone_to_utc():
-    content = 'tzdata/Zones/Europe="Prague"'
-    result, unknown = process_content(content, check=False)
-    assert 'tzdata/Zones/Europe="UTC"' in result
     assert unknown == []
 
 
@@ -270,17 +256,6 @@ def test_tzdata_zone_accepts_utc_when_in_choices():
     result, unknown = process_content(content, check=True)
     assert 'tzdata/Zones/Etc="UTC"' in result
     assert unknown == []
-
-
-def test_tzdata_zone_rejects_utc_when_not_in_choices():
-    content = dedent("""\
-        # (Choices: Prague, Berlin, Paris)
-        # Time zone:
-        tzdata/Zones/Europe="Prague"
-        """)
-    with raises(MissingChoiceError) as exc_info:
-        process_content(content, check=True)
-    assert "Content does not contain string 'UTC'" in str(exc_info.value)
 
 
 def test_locales_accepts_value_when_in_choices():
