@@ -8,7 +8,7 @@ import sys
 import pytest
 
 # Import the module under test
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from importlib import import_module
 editor = import_module('dpkg-reconfigure-automation-editor')
 
