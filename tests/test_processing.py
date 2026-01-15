@@ -30,25 +30,25 @@ def test_parse_line_returns_none_for_separator():
     assert editor.parse_line("###############") is None
 
 
-# Tests for find_config_value
+# Tests for ConfigValues
 
-def test_find_config_value_exact_match():
-    exact, patterns = editor.get_config_values()
-    assert editor.find_config_value(exact, patterns, "tzdata/Areas") == "Etc"
-    assert editor.find_config_value(exact, patterns, "locales/locales_to_be_generated") == "en_US.UTF-8 UTF-8"
-
-
-def test_find_config_value_pattern_match():
-    exact, patterns = editor.get_config_values()
-    assert editor.find_config_value(exact, patterns, "tzdata/Zones/Etc") == "UTC"
-    assert editor.find_config_value(exact, patterns, "tzdata/Zones/Europe") == "UTC"
-    assert editor.find_config_value(exact, patterns, "tzdata/Zones/America") == "UTC"
+def test_config_values_exact_match():
+    config = editor.ConfigValues()
+    assert config.get("tzdata/Areas") == "Etc"
+    assert config.get("locales/locales_to_be_generated") == "en_US.UTF-8 UTF-8"
 
 
-def test_find_config_value_unknown():
-    exact, patterns = editor.get_config_values()
-    assert editor.find_config_value(exact, patterns, "unknown/key") is None
-    assert editor.find_config_value(exact, patterns, "some-package/option") is None
+def test_config_values_pattern_match():
+    config = editor.ConfigValues()
+    assert config.get("tzdata/Zones/Etc") == "UTC"
+    assert config.get("tzdata/Zones/Europe") == "UTC"
+    assert config.get("tzdata/Zones/America") == "UTC"
+
+
+def test_config_values_unknown():
+    config = editor.ConfigValues()
+    assert config.get("unknown/key") is None
+    assert config.get("some-package/option") is None
 
 
 # Tests for tzdata processing
