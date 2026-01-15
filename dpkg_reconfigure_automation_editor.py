@@ -37,7 +37,7 @@ class ConfigValues:
         # - Open a PR if you think it would be great to share it
         # - Or describe your use case in an Github Issue and we can think
         #   about how to add options dynamically in some way (env vars etc.)
-        
+
         self.exact = {
             "tzdata/Areas": "None of the above",
             "tzdata/Zones/Etc": "UTC",
@@ -52,8 +52,8 @@ class ConfigValues:
     def get_locales(fqdn: str | None = None):
         """Yield locales to generate, including Czech on .cz servers."""
         yield "en_US.UTF-8 UTF-8"
-        if environ.get('EXTRA_LOCALES'):
-            for s in environ['EXTRA_LOCALES'].split(','):
+        if environ.get("EXTRA_LOCALES"):
+            for s in environ["EXTRA_LOCALES"].split(","):
                 yield s.strip()
         elif (fqdn or getfqdn()).endswith(".cz"):
             yield "cs_CZ.UTF-8 UTF-8"
@@ -61,7 +61,7 @@ class ConfigValues:
     def get(self, key: str) -> str | None:
         """Find the configured value for a key, supporting regex patterns."""
         result_value = None
-        
+
         if key in self.exact:
             result_value = self.exact[key]
 
