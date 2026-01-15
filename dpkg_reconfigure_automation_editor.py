@@ -11,6 +11,7 @@ Supported packages:
 """
 
 from argparse import ArgumentParser
+from os import environ
 from pathlib import Path
 from re import compile
 from socket import getfqdn
@@ -30,10 +31,17 @@ class ConfigValues:
     """Configuration values with exact keys and regex patterns."""
 
     def __init__(self):
+        # Do you need to add your own configuration options here?
+        #
+        # - Copy this file and add it :)
+        # - Open a PR if you think it would be great to share it
+        # - Or describe your use case in an Github Issue and we can think
+        #   about how to add options dynamically in some way (env vars etc.)
+        
         self.exact = {
             "tzdata/Areas": "None of the above",
             "tzdata/Zones/Etc": "UTC",
-            "locales/locales_to_be_generated": ", ".join(self.get_locales()),
+            "locales/locales_to_be_generated": lambda: ", ".join(sorted(self.get_locales())),
             "locales/default_environment_locale": "en_US.UTF-8",
         }
         self.patterns = {
@@ -43,20 +51,27 @@ class ConfigValues:
     @staticmethod
     def get_locales(fqdn: str | None = None):
         """Yield locales to generate, including Czech on .cz servers."""
-        if fqdn is None:
-            fqdn = getfqdn()
-        if fqdn.endswith(".cz"):
-            yield "cs_CZ.UTF-8 UTF-8"
         yield "en_US.UTF-8 UTF-8"
+        if environ.get('EXTRA_LOCALES'):
+            for s in environ['EXTRA_LOCALES'].split(','):
+                yield s.strip()
+        elif (fqdn or getfqdn()).endswith(".cz"):
+            yield "cs_CZ.UTF-8 UTF-8"
 
     def get(self, key: str) -> str | None:
         """Find the configured value for a key, supporting regex patterns."""
+        result_value = None
+        
         if key in self.exact:
-            return self.exact[key]
+            result_value = self.exact[key]
 
         for pattern, value in self.patterns.items():
             if pattern.fullmatch(key):
-                return value
+                result_value = value
+
+        if callable(result_value):
+            # in case it is a lambda
+            result_value = result_value()
 
         return None
 
