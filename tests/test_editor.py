@@ -237,3 +237,7 @@ def test_script_debug_creates_files(tmp_path):
     after_content = latest_after.read_text()
     assert 'tzdata/Areas="Europe"' in before_content
     assert 'tzdata/Areas="Asia"' in after_content
+
+    # Cleanup
+    latest_before.unlink()
+    latest_after.unlink()
