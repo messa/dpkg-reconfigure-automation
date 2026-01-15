@@ -12,33 +12,26 @@ Supported packages:
 
 from argparse import ArgumentParser
 from pathlib import Path
-from re import match
+from re import compile, Pattern
 from socket import getfqdn
 from sys import exit, stderr
 
 
-def get_config_values() -> dict[str, str]:
-    """
-    Return configuration values, optionally including Czech locales
-    if the server's FQDN ends with .cz.
-    """
-    locales_to_generate = "en_US.UTF-8 UTF-8"
+def get_locales():
+    """Yield locales to generate, including Czech on .cz servers."""
+    yield "en_US.UTF-8 UTF-8"
+    if getfqdn().endswith(".cz"):
+        yield "cs_CZ.UTF-8 UTF-8"
 
-    fqdn = getfqdn()
-    if fqdn.endswith(".cz"):
-        locales_to_generate = "cs_CZ.UTF-8 UTF-8, en_US.UTF-8 UTF-8"
 
+def get_config_values() -> dict[str | Pattern, str]:
+    """Return configuration values mapping keys (or regex patterns) to values."""
     return {
         "tzdata/Areas": "Etc",
-        "~tzdata/Zones/.+": "UTC",
-        "locales/locales_to_be_generated": locales_to_generate,
+        compile(r"tzdata/Zones/.+"): "UTC",
+        "locales/locales_to_be_generated": ", ".join(get_locales()),
         "locales/default_environment_locale": "en_US.UTF-8",
     }
-
-
-# Mapping of known configuration keys to their desired values
-# Keys starting with ~ are treated as regex patterns
-CONFIG_VALUES = get_config_values()
 
 
 def parse_line(line: str) -> tuple[str, str] | None:
@@ -59,15 +52,16 @@ def parse_line(line: str) -> tuple[str, str] | None:
 
 def find_config_value(key: str) -> str | None:
     """Find the configured value for a key, supporting regex patterns."""
-    # First try exact match
-    if key in CONFIG_VALUES:
-        return CONFIG_VALUES[key]
+    config_values = get_config_values()
 
-    # Then try regex patterns (keys starting with ~)
-    for pattern, value in CONFIG_VALUES.items():
-        if pattern.startswith("~"):
-            if match(pattern[1:] + "$", key):
-                return value
+    # First try exact match
+    if key in config_values:
+        return config_values[key]
+
+    # Then try regex patterns
+    for pattern, value in config_values.items():
+        if isinstance(pattern, Pattern) and pattern.fullmatch(key):
+            return value
 
     return None
 
