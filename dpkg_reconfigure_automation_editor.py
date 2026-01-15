@@ -83,7 +83,10 @@ def process_content(content: str) -> tuple[str, list[str]]:
         else:
             result_lines.append(f'{key}="{new_value}"')
 
-    return "\n".join(result_lines), unknown_keys
+    result = "\n".join(result_lines)
+    if content.endswith("\n"):
+        result += "\n"
+    return result, unknown_keys
 
 
 def main(args=None):

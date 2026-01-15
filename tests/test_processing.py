@@ -195,3 +195,17 @@ def test_handles_existing_value():
     result, unknown = editor.process_content(content)
     assert 'locales/locales_to_be_generated="en_US.UTF-8 UTF-8"' in result
     assert unknown == []
+
+
+def test_preserves_trailing_newline():
+    content = 'locales/locales_to_be_generated=""\n'
+    result, unknown = editor.process_content(content)
+    assert result.endswith("\n")
+    assert unknown == []
+
+
+def test_no_trailing_newline_when_input_has_none():
+    content = 'locales/locales_to_be_generated=""'
+    result, unknown = editor.process_content(content)
+    assert not result.endswith("\n")
+    assert unknown == []
