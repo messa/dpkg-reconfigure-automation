@@ -252,10 +252,11 @@ def test_tzdata_warns_when_value_not_in_choices():
         tzdata/Areas="Europe"
         """)
     result, unknown, unknown_values = process_content(content)
-    # Value is set even when not in choices
-    assert 'tzdata/Areas="None of the above"' in result
+    # Value is set to "Etc" (fallback when "None of the above" not in choices)
+    # but "Etc" is not in choices, so it should be in unknown_values
+    assert 'tzdata/Areas="Etc"' in result
     assert unknown == []
-    assert "None of the above" in unknown_values
+    assert "Etc" in unknown_values
 
 
 def test_tzdata_zone_accepts_utc_when_in_choices():
