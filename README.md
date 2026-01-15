@@ -6,7 +6,7 @@ Example:
 
 ```shell
 # Setup
-curl -fLsS https://raw.githubusercontent.com/messa/dpkg-reconfigure-automation/main/dpkg-reconfigure-automation-editor.py -o /usr/local/bin/dpkg-reconfigure-automation-editor
+curl -fLsS https://raw.githubusercontent.com/messa/dpkg-reconfigure-automation/main/dpkg_reconfigure_automation_editor.py -o /usr/local/bin/dpkg-reconfigure-automation-editor
 chmod +x /usr/local/bin/dpkg-reconfigure-automation-editor
 
 # Usage
@@ -18,3 +18,10 @@ What does it do:
 
 - For tzdata, it chooses the UTC timezone
 - For locales, it chooses `en_US.UTF-8`
+
+## Running tests
+
+```shell
+pip install pytest
+pytest
+```
