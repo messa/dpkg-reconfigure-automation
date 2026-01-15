@@ -2,24 +2,56 @@
 
 A script you can use as `EDITOR` for `dpkg-reconfigure -f editor` to automate Debian configuration.
 
-Example:
+## Installation
+
+Install directly from GitHub:
 
 ```shell
-# Setup
+pip install git+https://github.com/messa/dpkg-reconfigure-automation.git
+```
+
+Or using uv:
+
+```shell
+uv pip install git+https://github.com/messa/dpkg-reconfigure-automation.git
+```
+
+### Alternative: manual installation
+
+```shell
 curl -fLsS https://raw.githubusercontent.com/messa/dpkg-reconfigure-automation/main/dpkg_reconfigure_automation_editor.py -o /usr/local/bin/dpkg-reconfigure-automation-editor
 chmod +x /usr/local/bin/dpkg-reconfigure-automation-editor
+```
 
-# Usage
+## Usage
+
+After pip installation:
+
+```shell
+EDITOR=dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor tzdata
+EDITOR=dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor locales
+```
+
+After manual installation:
+
+```shell
 EDITOR=/usr/local/bin/dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor tzdata
 EDITOR=/usr/local/bin/dpkg-reconfigure-automation-editor dpkg-reconfigure -f editor locales
 ```
 
-What does it do:
+## What does it do
 
 - For tzdata, it chooses the UTC timezone
 - For locales, it chooses `en_US.UTF-8`
 
 ## Running tests
+
+```shell
+uv sync
+uv run pytest
+```
+
+Or with pip:
 
 ```shell
 pip install pytest
