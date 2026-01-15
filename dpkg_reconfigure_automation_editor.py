@@ -12,12 +12,12 @@ Supported packages:
 
 from argparse import ArgumentParser
 from datetime import datetime, timezone
-from logging import DEBUG, ERROR, Formatter, INFO, StreamHandler, getLogger
+from logging import DEBUG, ERROR, INFO, Formatter, StreamHandler, getLogger
 from os import environ, getpid
 from pathlib import Path
-from tempfile import gettempdir
 from socket import getfqdn
 from sys import exit, stderr
+from tempfile import gettempdir
 
 # Also update version in pyproject.toml
 __version__ = "0.1.0"
