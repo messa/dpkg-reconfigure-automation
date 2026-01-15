@@ -30,22 +30,25 @@ def test_parse_line_returns_none_for_separator():
     assert editor.parse_line("###############") is None
 
 
-# Tests for find_config_value
+# Tests for ConfigValues
 
-def test_find_config_value_exact_match():
-    assert editor.find_config_value("tzdata/Areas") == "Etc"
-    assert editor.find_config_value("locales/locales_to_be_generated") == "en_US.UTF-8 UTF-8"
-
-
-def test_find_config_value_pattern_match():
-    assert editor.find_config_value("tzdata/Zones/Etc") == "UTC"
-    assert editor.find_config_value("tzdata/Zones/Europe") == "UTC"
-    assert editor.find_config_value("tzdata/Zones/America") == "UTC"
+def test_config_values_exact_match():
+    config = editor.ConfigValues()
+    assert config.get("tzdata/Areas") == "Etc"
+    assert config.get("locales/locales_to_be_generated") == "en_US.UTF-8 UTF-8"
 
 
-def test_find_config_value_unknown():
-    assert editor.find_config_value("unknown/key") is None
-    assert editor.find_config_value("some-package/option") is None
+def test_config_values_pattern_match():
+    config = editor.ConfigValues()
+    assert config.get("tzdata/Zones/Etc") == "UTC"
+    assert config.get("tzdata/Zones/Europe") == "UTC"
+    assert config.get("tzdata/Zones/America") == "UTC"
+
+
+def test_config_values_unknown():
+    config = editor.ConfigValues()
+    assert config.get("unknown/key") is None
+    assert config.get("some-package/option") is None
 
 
 # Tests for tzdata processing
@@ -87,6 +90,18 @@ def test_tzdata_full_config():
     assert "# You are using" in result
     assert "# Instructions" in result
     assert unknown == []
+
+
+# Tests for get_locales
+
+def test_get_locales_returns_english_on_non_cz_server():
+    locales = list(editor.ConfigValues.get_locales(fqdn="server.example.com"))
+    assert locales == ["en_US.UTF-8 UTF-8"]
+
+
+def test_get_locales_returns_czech_and_english_on_cz_server():
+    locales = list(editor.ConfigValues.get_locales(fqdn="server.example.cz"))
+    assert locales == ["cs_CZ.UTF-8 UTF-8", "en_US.UTF-8 UTF-8"]
 
 
 # Tests for locales processing
