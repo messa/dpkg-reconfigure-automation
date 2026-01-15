@@ -1,5 +1,3 @@
-.PHONY: default check lint lint-fix
-
 default: check
 
 check:
@@ -12,3 +10,5 @@ lint:
 lint-fix:
 	uv run ruff check --fix .
 	uv run ruff format .
+
+.PHONY: default check lint lint-fix
