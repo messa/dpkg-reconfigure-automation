@@ -82,7 +82,7 @@ tzdata/Zones/Etc="UTC"
 ```
 
 To set UTC timezone, you need to change:
-- `tzdata/Areas="Etc"`
+- `tzdata/Areas="None of the above"`
 - `tzdata/Zones/Etc="UTC"`
 
 ## Example: locales
