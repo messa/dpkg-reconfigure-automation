@@ -23,7 +23,7 @@ def get_version() -> str:
     try:
         return version("dpkg-reconfigure-automation")
     except PackageNotFoundError:
-        return "0.1.0-dev"
+        return "unknown"
 
 
 class MissingChoiceError(Exception):
