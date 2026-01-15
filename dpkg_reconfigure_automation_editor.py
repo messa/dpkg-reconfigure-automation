@@ -17,27 +17,27 @@ from socket import getfqdn
 from sys import exit, stderr
 
 
-def get_locales(fqdn: str | None = None):
-    """Yield locales to generate, including Czech on .cz servers."""
-    if fqdn is None:
-        fqdn = getfqdn()
-    if fqdn.endswith(".cz"):
-        yield "cs_CZ.UTF-8 UTF-8"
-    yield "en_US.UTF-8 UTF-8"
-
-
 class ConfigValues:
     """Configuration values with exact keys and regex patterns."""
 
     def __init__(self):
         self.exact = {
             "tzdata/Areas": "Etc",
-            "locales/locales_to_be_generated": ", ".join(get_locales()),
+            "locales/locales_to_be_generated": ", ".join(self.get_locales()),
             "locales/default_environment_locale": "en_US.UTF-8",
         }
         self.patterns = {
             compile(r"tzdata/Zones/.+"): "UTC",
         }
+
+    @staticmethod
+    def get_locales(fqdn: str | None = None):
+        """Yield locales to generate, including Czech on .cz servers."""
+        if fqdn is None:
+            fqdn = getfqdn()
+        if fqdn.endswith(".cz"):
+            yield "cs_CZ.UTF-8 UTF-8"
+        yield "en_US.UTF-8 UTF-8"
 
     def get(self, key: str) -> str | None:
         """Find the configured value for a key, supporting regex patterns."""
