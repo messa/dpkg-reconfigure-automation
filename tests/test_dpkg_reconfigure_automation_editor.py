@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""Tests for dpkg-reconfigure-automation-editor.py"""
+"""Tests for dpkg_reconfigure_automation_editor.py"""
 
-from importlib import import_module
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -11,7 +10,7 @@ import pytest
 
 # Import the module under test
 sys.path.insert(0, str(Path(__file__).parent.parent))
-editor = import_module('dpkg-reconfigure-automation-editor')
+import dpkg_reconfigure_automation_editor as editor
 
 
 # Tests for tzdata processing
