@@ -7,22 +7,38 @@ Debian package configuration.
 
 Supported packages:
 - tzdata: sets timezone to UTC
-- locales: sets locale to en_US.UTF-8
+- locales: sets locale to en_US.UTF-8 (also cs_CZ.UTF-8 on servers with .cz FQDN)
 """
 
 from argparse import ArgumentParser
 from pathlib import Path
 from re import match
+from socket import getfqdn
 from sys import exit, stderr
+
+
+def get_config_values() -> dict[str, str]:
+    """
+    Return configuration values, optionally including Czech locales
+    if the server's FQDN ends with .cz.
+    """
+    locales_to_generate = "en_US.UTF-8 UTF-8"
+
+    fqdn = getfqdn()
+    if fqdn.endswith(".cz"):
+        locales_to_generate = "cs_CZ.UTF-8 UTF-8, en_US.UTF-8 UTF-8"
+
+    return {
+        "tzdata/Areas": "Etc",
+        "~tzdata/Zones/.+": "UTC",
+        "locales/locales_to_be_generated": locales_to_generate,
+        "locales/default_environment_locale": "en_US.UTF-8",
+    }
+
 
 # Mapping of known configuration keys to their desired values
 # Keys starting with ~ are treated as regex patterns
-CONFIG_VALUES = {
-    "tzdata/Areas": "Etc",
-    "~tzdata/Zones/.+": "UTC",
-    "locales/locales_to_be_generated": "en_US.UTF-8 UTF-8",
-    "locales/default_environment_locale": "en_US.UTF-8",
-}
+CONFIG_VALUES = get_config_values()
 
 
 def parse_line(line: str) -> tuple[str, str] | None:
