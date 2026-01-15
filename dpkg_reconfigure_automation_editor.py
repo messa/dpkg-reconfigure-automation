@@ -52,10 +52,8 @@ def parse_line(line: str) -> tuple[str, str] | None:
     return key, value
 
 
-def find_config_value(key: str) -> str | None:
+def find_config_value(key: str, config_values: dict[str | Pattern, str]) -> str | None:
     """Find the configured value for a key, supporting regex patterns."""
-    config_values = get_config_values()
-
     # First try exact match
     if key in config_values:
         return config_values[key]
@@ -75,6 +73,7 @@ def process_content(content: str) -> tuple[str, list[str]]:
     Only processes non-empty, non-comment lines.
     Returns list of unknown keys that were encountered.
     """
+    config_values = get_config_values()
     lines = content.splitlines()
     result_lines = []
     unknown_keys = []
@@ -87,7 +86,7 @@ def process_content(content: str) -> tuple[str, list[str]]:
             continue
 
         key, _old_value = parsed
-        new_value = find_config_value(key)
+        new_value = find_config_value(key, config_values)
 
         if new_value is None:
             unknown_keys.append(key)

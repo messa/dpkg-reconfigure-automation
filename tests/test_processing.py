@@ -33,19 +33,22 @@ def test_parse_line_returns_none_for_separator():
 # Tests for find_config_value
 
 def test_find_config_value_exact_match():
-    assert editor.find_config_value("tzdata/Areas") == "Etc"
-    assert editor.find_config_value("locales/locales_to_be_generated") == "en_US.UTF-8 UTF-8"
+    config = editor.get_config_values()
+    assert editor.find_config_value("tzdata/Areas", config) == "Etc"
+    assert editor.find_config_value("locales/locales_to_be_generated", config) == "en_US.UTF-8 UTF-8"
 
 
 def test_find_config_value_pattern_match():
-    assert editor.find_config_value("tzdata/Zones/Etc") == "UTC"
-    assert editor.find_config_value("tzdata/Zones/Europe") == "UTC"
-    assert editor.find_config_value("tzdata/Zones/America") == "UTC"
+    config = editor.get_config_values()
+    assert editor.find_config_value("tzdata/Zones/Etc", config) == "UTC"
+    assert editor.find_config_value("tzdata/Zones/Europe", config) == "UTC"
+    assert editor.find_config_value("tzdata/Zones/America", config) == "UTC"
 
 
 def test_find_config_value_unknown():
-    assert editor.find_config_value("unknown/key") is None
-    assert editor.find_config_value("some-package/option") is None
+    config = editor.get_config_values()
+    assert editor.find_config_value("unknown/key", config) is None
+    assert editor.find_config_value("some-package/option", config) is None
 
 
 # Tests for tzdata processing
