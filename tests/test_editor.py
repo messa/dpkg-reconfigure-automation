@@ -20,8 +20,10 @@ def test_script_processes_file_in_place():
         filepath = Path(f.name)
 
     try:
-        result = run([executable, str(SCRIPT_PATH), str(filepath)])
+        result = run([executable, str(SCRIPT_PATH), str(filepath)], capture_output=True)
         assert result.returncode == 0
+        assert result.stdout == b''
+        assert result.stderr == b''
         file_content = filepath.read_text()
         assert 'locales/locales_to_be_generated="en_US.UTF-8 UTF-8"' in file_content
     finally:
