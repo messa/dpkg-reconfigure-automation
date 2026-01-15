@@ -68,5 +68,5 @@ def test_script_processes_tzdata(tmp_path):
     result = run([executable, str(SCRIPT_PATH), str(filepath)], capture_output=True)
     assert result.returncode == 0
     file_content = filepath.read_text()
-    assert 'tzdata/Areas="Etc"' in file_content
+    assert 'tzdata/Areas="None of the above"' in file_content
     assert 'tzdata/Zones/Europe="UTC"' in file_content
