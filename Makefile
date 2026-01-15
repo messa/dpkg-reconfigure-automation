@@ -1,4 +1,4 @@
-.PHONY: check test lint lint-fix format
+.PHONY: default check lint lint-fix
 
 default: check
 
