@@ -12,7 +12,7 @@ Supported packages:
 
 from argparse import ArgumentParser
 from pathlib import Path
-from re import match, sub
+from re import MULTILINE, sub
 
 
 def process_tzdata(content: str) -> str:
@@ -22,14 +22,14 @@ def process_tzdata(content: str) -> str:
         r'^(tzdata/Areas=)".*"',
         r'\1"Etc"',
         content,
-        flags=8  # re.MULTILINE
+        flags=MULTILINE
     )
     # Set timezone to UTC (for any Zones/* question)
     content = sub(
         r'^(tzdata/Zones/[^=]+=)".*"',
         r'\1"UTC"',
         content,
-        flags=8  # re.MULTILINE
+        flags=MULTILINE
     )
     return content
 
@@ -41,14 +41,14 @@ def process_locales(content: str) -> str:
         r'^(locales/locales_to_be_generated=)".*"',
         r'\1"en_US.UTF-8 UTF-8"',
         content,
-        flags=8  # re.MULTILINE
+        flags=MULTILINE
     )
     # Set default locale
     content = sub(
         r'^(locales/default_environment_locale=)".*"',
         r'\1"en_US.UTF-8"',
         content,
-        flags=8  # re.MULTILINE
+        flags=MULTILINE
     )
     return content
 
