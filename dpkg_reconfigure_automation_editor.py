@@ -122,6 +122,7 @@ def process_content(
     lines = content.splitlines(True)
     result_lines = []
     unknown_keys = []
+    unknown_values = []
 
     for line in lines:
         # Preserve line ending (e.g. '\n' or '\r\n')
@@ -138,16 +139,22 @@ def process_content(
         new_value = config.get(key)
 
         if new_value is None:
+            logger.error("Unknown configuration key: %r", stripped)
             unknown_keys.append(key)
             result_lines.append(line)
         else:
             if check and new_value not in content:
                 # Usually the content contains a list of all permitted values.
                 # The new_value seems to not be amongst them.
-                raise MissingChoiceError(f"Content does not contain string {new_value!r}")
-            result_lines.append(f'{key}="{new_value}"' + ending)
+                logger.error(
+                    "Wanted to update %r to value %r, but content does not contain string %r",
+                    stripped, new_value, new_value)
+                unknown_values.append(new_value)
+            else:
+                logger.debug("Updating %r to value %r", stripped, new_value)
+                result_lines.append(f'{key}="{new_value}"' + ending)
 
-    return "".join(result_lines), unknown_keys
+    return "".join(result_lines), unknown_keys, unknown_values
 
 
 def generate_debug_prefix():
@@ -208,11 +215,13 @@ def main(args=None):
         before_path.write_text(content)
         logger.info("Wrote debug file: %s", before_path)
 
-    processed, unknown_keys = process_content(content, config=config)
+    processed, unknown_keys, unknown_values = process_content(content, config=config)
 
     if unknown_keys:
-        for key in unknown_keys:
-            logger.error("Unknown configuration key: %s", key)
+        print('ERROR: Unknown configuration keys:', ', '.join(unknown_keys), file=stderr)
+    if unknown_values:
+        print('ERROR: Unknown values (they are not present in the content):', ', '.join(unknown_values), file=stderr)
+    if unknown_keys or unknown_values:
         exit(1)
 
     filepath.write_text(processed)
