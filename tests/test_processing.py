@@ -311,7 +311,7 @@ def test_add_override_adds_to_exact():
 
 def test_add_override_overrides_default():
     config = ConfigValues()
-    assert config.get("tzdata/Areas") == "None of the above"
+    assert config.get("tzdata/Areas") == "Etc"
     config.add_override("tzdata/Areas", "Europe")
     assert config.get("tzdata/Areas") == "Europe"
 

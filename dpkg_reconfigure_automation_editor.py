@@ -108,7 +108,7 @@ def process_content(content: str, config: ConfigValues | None = None) -> tuple[s
     If config is provided, it will be used instead of creating a new ConfigValues.
     """
     if config is None:
-        config = ConfigValues()
+        config = ConfigValues(content=content)
     lines = content.splitlines(True)
     result_lines = []
     unknown_keys = []
