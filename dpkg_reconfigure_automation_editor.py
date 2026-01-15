@@ -22,7 +22,8 @@ class ConfigValues:
 
     def __init__(self):
         self.exact = {
-            "tzdata/Areas": "Etc",
+            "tzdata/Areas": "None of the above",
+            "tzdata/Zones/Etc": "UTC",
             "locales/locales_to_be_generated": ", ".join(self.get_locales()),
             "locales/default_environment_locale": "en_US.UTF-8",
         }

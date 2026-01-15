@@ -34,7 +34,7 @@ def test_parse_line_returns_none_for_separator():
 
 def test_config_values_exact_match():
     config = editor.ConfigValues()
-    assert config.get("tzdata/Areas") == "Etc"
+    assert config.get("tzdata/Areas") == "None of the above"
     assert config.get("locales/locales_to_be_generated") == "en_US.UTF-8 UTF-8"
 
 
@@ -56,7 +56,7 @@ def test_config_values_unknown():
 def test_tzdata_sets_area_to_etc():
     content = 'tzdata/Areas="Europe"'
     result, unknown = editor.process_content(content)
-    assert 'tzdata/Areas="Etc"' in result
+    assert 'tzdata/Areas="None of the above"' in result
     assert unknown == []
 
 
@@ -86,7 +86,7 @@ def test_tzdata_full_config():
         ###############################################################################
         # Instructions...""")
     result, unknown = editor.process_content(content)
-    assert 'tzdata/Areas="Etc"' in result
+    assert 'tzdata/Areas="None of the above"' in result
     assert "# You are using" in result
     assert "# Instructions" in result
     assert unknown == []
@@ -161,7 +161,7 @@ def test_mixed_known_and_unknown_keys():
         unknown/key="value"
         """)
     result, unknown = editor.process_content(content)
-    assert 'tzdata/Areas="Etc"' in result
+    assert 'tzdata/Areas="None of the above"' in result
     assert unknown == ["unknown/key"]
 
 
