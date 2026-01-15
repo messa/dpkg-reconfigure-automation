@@ -16,6 +16,9 @@ from re import compile, Pattern
 from socket import getfqdn
 from sys import exit, stderr
 
+# Also update version in pyproject.toml
+__version__ = "0.1.0"
+
 
 class MissingChoiceError(Exception):
     """Raised when the configured value is not present in the available choices."""
@@ -118,6 +121,9 @@ def process_content(content: str, check: bool = True) -> tuple[str, list[str]]:
 def main(args=None):
     parser = ArgumentParser(
         description='Automate dpkg-reconfigure by modifying debconf editor files'
+    )
+    parser.add_argument(
+        '--version', action='version', version=f'%(prog)s {__version__}'
     )
     parser.add_argument('file', help='Path to the debconf editor file')
     parsed = parser.parse_args(args)

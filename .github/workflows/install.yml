@@ -35,6 +35,8 @@ jobs:
           which dpkg-reconfigure-automation-editor
           # Run the script with --help to verify it works
           dpkg-reconfigure-automation-editor --help
+          # Check that --version works and returns the correct version
+          dpkg-reconfigure-automation-editor --version
 
   install-from-wheel:
     runs-on: ubuntu-latest
@@ -66,3 +68,4 @@ jobs:
         run: |
           python3 -m pip show dpkg-reconfigure-automation
           dpkg-reconfigure-automation-editor --help
+          dpkg-reconfigure-automation-editor --version
