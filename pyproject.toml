@@ -1,5 +1,6 @@
 [project]
 name = "dpkg-reconfigure-automation"
+# Also update version in dpkg_reconfigure_automation_editor.py
 version = "0.1.0"
 description = "Automate dpkg-reconfigure by modifying debconf editor files"
 readme = "README.md"
