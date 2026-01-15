@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 """Tests for processing functions."""
 
-from pathlib import Path
 from textwrap import dedent
-import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
 import dpkg_reconfigure_automation_editor as editor
 
 
