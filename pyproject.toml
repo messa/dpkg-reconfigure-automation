@@ -5,7 +5,15 @@ description = "Automate dpkg-reconfigure by modifying debconf editor files"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.8"
+authors = [
+    { name = "Petr Messner", email = "petr.messner+github@gmail.com" }
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/messa/dpkg-reconfigure-automation"
+Repository = "https://github.com/messa/dpkg-reconfigure-automation.git"
+Issues = "https://github.com/messa/dpkg-reconfigure-automation/issues"
 
 [project.scripts]
 dpkg-reconfigure-automation-editor = "dpkg_reconfigure_automation_editor:main"
