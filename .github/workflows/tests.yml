@@ -26,5 +26,8 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Show Python version
+        run: .venv/bin/python3 --version
+
       - name: Run tests
         run: uv run pytest tests
