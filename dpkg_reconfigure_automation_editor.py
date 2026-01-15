@@ -11,6 +11,8 @@ Supported packages:
 """
 
 from argparse import ArgumentParser
+from datetime import datetime, timezone
+from logging import DEBUG, ERROR, Formatter, INFO, StreamHandler, getLogger
 from os import environ
 from pathlib import Path
 from re import compile
@@ -19,6 +21,24 @@ from sys import exit, stderr
 
 # Also update version in pyproject.toml
 __version__ = "0.1.0"
+
+logger = getLogger(__name__)
+
+log_format = "%(asctime)s [%(process)d] %(name)-40s %(levelname)5s: %(message)s"
+
+
+def setup_logging(verbosity):
+    """Setup logging to stderr."""
+    getLogger("").setLevel(DEBUG)
+    h = StreamHandler()
+    h.setFormatter(Formatter(log_format))
+    if not verbosity:
+        h.setLevel(ERROR)
+    elif verbosity == 1:
+        h.setLevel(INFO)
+    else:
+        h.setLevel(DEBUG)
+    getLogger("").addHandler(h)
 
 
 class MissingChoiceError(Exception):
@@ -147,11 +167,28 @@ def process_content(
     return "".join(result_lines), unknown_keys
 
 
+def generate_debug_prefix():
+    """Generate debug file prefix with timestamp."""
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return f"/tmp/dpkg_reconfigure_automation_editor.{ts}"
+
+
 def main(args=None):
     parser = ArgumentParser(
         description="Automate dpkg-reconfigure by modifying debconf editor files"
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "-v", "--verbose",
+        action="count",
+        default=0,
+        help="Increase verbosity (can be repeated: -v for INFO, -vv for DEBUG)",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Write editor content to /tmp before and after processing",
+    )
     parser.add_argument(
         "overrides_and_file",
         nargs="+",
@@ -160,9 +197,14 @@ def main(args=None):
     )
     parsed = parser.parse_args(args)
 
+    setup_logging(parsed.verbose)
+
     # Last argument is the file, the rest are overrides
-    filepath = Path(parsed.overrides_and_file[-1])
-    overrides = parsed.overrides_and_file[:-1]
+    [*overrides, filepath] = parsed.overrides_and_file
+    filepath = Path(filepath)
+
+    logger.info("Processing file: %s", filepath)
+    logger.debug("Overrides: %s", overrides)
 
     config = ConfigValues()
     for override in overrides:
@@ -170,17 +212,35 @@ def main(args=None):
             print(f"Error: Invalid override format: {override!r} (expected key=value)", file=stderr)
             exit(1)
         key, value = override.split("=", 1)
+        logger.debug("Adding override: %s = %s", key, value)
         config.add_override(key, value)
 
     content = filepath.read_text()
+
+    # Write debug "before" file
+    debug_prefix = None
+    if parsed.debug:
+        debug_prefix = generate_debug_prefix()
+        before_path = Path(f"{debug_prefix}.before")
+        before_path.write_text(content)
+        logger.info("Wrote debug file: %s", before_path)
+
     processed, unknown_keys = process_content(content, config=config)
 
     if unknown_keys:
         for key in unknown_keys:
+            logger.error("Unknown configuration key: %s", key)
             print(f"Error: Unknown configuration key: {key}", file=stderr)
         exit(1)
 
     filepath.write_text(processed)
+    logger.info("File processed successfully")
+
+    # Write debug "after" file
+    if parsed.debug and debug_prefix:
+        after_path = Path(f"{debug_prefix}.after")
+        after_path.write_text(processed)
+        logger.info("Wrote debug file: %s", after_path)
 
 
 if __name__ == "__main__":

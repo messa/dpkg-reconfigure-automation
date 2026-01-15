@@ -136,3 +136,68 @@ def test_script_with_invalid_override(tmp_path):
     )
     assert result.returncode == 1
     assert b"Invalid override format" in result.stderr
+
+
+def test_script_verbose_single(tmp_path):
+    content = dedent("""\
+        # (Choices: Asia, Europe, None of the above)
+        tzdata/Areas="Europe"
+        """)
+    filepath = tmp_path / "config.txt"
+    filepath.write_text(content)
+
+    result = run(
+        [executable, str(SCRIPT_PATH), "-v", str(filepath)],
+        capture_output=True,
+    )
+    assert result.returncode == 0
+    assert b"INFO" in result.stderr
+    assert b"Processing file:" in result.stderr
+
+
+def test_script_verbose_double(tmp_path):
+    content = dedent("""\
+        # (Choices: Asia, Europe, None of the above)
+        tzdata/Areas="Europe"
+        """)
+    filepath = tmp_path / "config.txt"
+    filepath.write_text(content)
+
+    result = run(
+        [executable, str(SCRIPT_PATH), "-vv", "tzdata/Areas=Asia", str(filepath)],
+        capture_output=True,
+    )
+    assert result.returncode == 0
+    assert b"DEBUG" in result.stderr
+    assert b"Adding override:" in result.stderr
+
+
+def test_script_debug_creates_files(tmp_path):
+    content = dedent("""\
+        # (Choices: Asia, Europe, None of the above)
+        tzdata/Areas="Europe"
+        """)
+    filepath = tmp_path / "config.txt"
+    filepath.write_text(content)
+
+    result = run(
+        [executable, str(SCRIPT_PATH), "--debug", "-v", "tzdata/Areas=Asia", str(filepath)],
+        capture_output=True,
+    )
+    assert result.returncode == 0
+    assert b"Wrote debug file:" in result.stderr
+
+    # Check that debug files were created
+    debug_files = list(Path("/tmp").glob("dpkg_reconfigure_automation_editor.*.before"))
+    assert len(debug_files) >= 1
+    latest_before = max(debug_files, key=lambda p: p.stat().st_mtime)
+    latest_after = Path(str(latest_before).replace(".before", ".after"))
+
+    assert latest_before.exists()
+    assert latest_after.exists()
+
+    # Check content
+    before_content = latest_before.read_text()
+    after_content = latest_after.read_text()
+    assert 'tzdata/Areas="Europe"' in before_content
+    assert 'tzdata/Areas="Asia"' in after_content
