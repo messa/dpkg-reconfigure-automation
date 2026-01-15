@@ -1,0 +1,66 @@
+name: Install Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package with pip
+        run: python3 -m pip install ./repo
+
+      - name: Verify installation
+        run: |
+          # Check that the package is installed
+          python3 -m pip show dpkg-reconfigure-automation
+          # Check that the entry point script is available
+          which dpkg-reconfigure-automation-editor
+          # Run the script with --help to verify it works
+          dpkg-reconfigure-automation-editor --help
+
+  install-from-wheel:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install build tools
+        run: python3 -m pip install build
+
+      - name: Build wheel
+        run: python3 -m build repo
+
+      - name: Install from wheel
+        run: python3 -m pip install repo/dist/*.whl
+
+      - name: Verify installation
+        run: |
+          python3 -m pip show dpkg-reconfigure-automation
+          dpkg-reconfigure-automation-editor --help
