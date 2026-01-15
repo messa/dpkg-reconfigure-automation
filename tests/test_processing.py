@@ -89,6 +89,18 @@ def test_tzdata_full_config():
     assert unknown == []
 
 
+# Tests for get_locales
+
+def test_get_locales_returns_english_on_non_cz_server():
+    locales = list(editor.get_locales(fqdn="server.example.com"))
+    assert locales == ["en_US.UTF-8 UTF-8"]
+
+
+def test_get_locales_returns_czech_and_english_on_cz_server():
+    locales = list(editor.get_locales(fqdn="server.example.cz"))
+    assert locales == ["cs_CZ.UTF-8 UTF-8", "en_US.UTF-8 UTF-8"]
+
+
 # Tests for locales processing
 
 def test_locales_sets_locales_to_generate():

@@ -17,9 +17,11 @@ from socket import getfqdn
 from sys import exit, stderr
 
 
-def get_locales():
+def get_locales(fqdn: str | None = None):
     """Yield locales to generate, including Czech on .cz servers."""
-    if getfqdn().endswith(".cz"):
+    if fqdn is None:
+        fqdn = getfqdn()
+    if fqdn.endswith(".cz"):
         yield "cs_CZ.UTF-8 UTF-8"
     yield "en_US.UTF-8 UTF-8"
 
