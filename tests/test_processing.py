@@ -9,33 +9,66 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import dpkg_reconfigure_automation_editor as editor
 
 
+# Tests for parse_line
+
+def test_parse_line_returns_key_value():
+    result = editor.parse_line('tzdata/Areas="Europe"')
+    assert result == ("tzdata/Areas", "Europe")
+
+
+def test_parse_line_returns_none_for_empty():
+    assert editor.parse_line("") is None
+    assert editor.parse_line("   ") is None
+
+
+def test_parse_line_returns_none_for_comment():
+    assert editor.parse_line("# Comment") is None
+    assert editor.parse_line("  # Indented comment") is None
+
+
+def test_parse_line_returns_none_for_separator():
+    assert editor.parse_line("###############") is None
+
+
+# Tests for find_config_value
+
+def test_find_config_value_exact_match():
+    assert editor.find_config_value("tzdata/Areas") == "Etc"
+    assert editor.find_config_value("locales/locales_to_be_generated") == "en_US.UTF-8 UTF-8"
+
+
+def test_find_config_value_pattern_match():
+    assert editor.find_config_value("tzdata/Zones/Etc") == "UTC"
+    assert editor.find_config_value("tzdata/Zones/Europe") == "UTC"
+    assert editor.find_config_value("tzdata/Zones/America") == "UTC"
+
+
+def test_find_config_value_unknown():
+    assert editor.find_config_value("unknown/key") is None
+    assert editor.find_config_value("some-package/option") is None
+
+
 # Tests for tzdata processing
 
 def test_tzdata_sets_area_to_etc():
-    content = dedent("""\
-        # Geographic area:
-        tzdata/Areas="Europe"
-        """)
-    result = editor.process_tzdata(content)
+    content = 'tzdata/Areas="Europe"'
+    result, unknown = editor.process_content(content)
     assert 'tzdata/Areas="Etc"' in result
+    assert unknown == []
 
 
 def test_tzdata_sets_zone_to_utc():
-    content = dedent("""\
-        # Time zone:
-        tzdata/Zones/Etc="GMT"
-        """)
-    result = editor.process_tzdata(content)
+    content = 'tzdata/Zones/Etc="GMT"'
+    result, unknown = editor.process_content(content)
     assert 'tzdata/Zones/Etc="UTC"' in result
+    assert unknown == []
 
 
 def test_tzdata_sets_any_zone_to_utc():
-    content = dedent("""\
-        # Time zone:
-        tzdata/Zones/Europe="Prague"
-        """)
-    result = editor.process_tzdata(content)
+    content = 'tzdata/Zones/Europe="Prague"'
+    result, unknown = editor.process_content(content)
     assert 'tzdata/Zones/Europe="UTC"' in result
+    assert unknown == []
 
 
 def test_tzdata_full_config():
@@ -48,32 +81,28 @@ def test_tzdata_full_config():
 
 
         ###############################################################################
-        # Instructions...
-        """)
-    result = editor.process_tzdata(content)
+        # Instructions...""")
+    result, unknown = editor.process_content(content)
     assert 'tzdata/Areas="Etc"' in result
     assert "# You are using" in result
     assert "# Instructions" in result
+    assert unknown == []
 
 
 # Tests for locales processing
 
 def test_locales_sets_locales_to_generate():
-    content = dedent("""\
-        # Locales to be generated:
-        locales/locales_to_be_generated=""
-        """)
-    result = editor.process_locales(content)
+    content = 'locales/locales_to_be_generated=""'
+    result, unknown = editor.process_content(content)
     assert 'locales/locales_to_be_generated="en_US.UTF-8 UTF-8"' in result
+    assert unknown == []
 
 
 def test_locales_sets_default_locale():
-    content = dedent("""\
-        # Default locale:
-        locales/default_environment_locale="cs_CZ.UTF-8"
-        """)
-    result = editor.process_locales(content)
+    content = 'locales/default_environment_locale="cs_CZ.UTF-8"'
+    result, unknown = editor.process_content(content)
     assert 'locales/default_environment_locale="en_US.UTF-8"' in result
+    assert unknown == []
 
 
 def test_locales_full_config():
@@ -86,50 +115,59 @@ def test_locales_full_config():
 
 
         ###############################################################################
-        # Instructions...
-        """)
-    result = editor.process_locales(content)
+        # Instructions...""")
+    result, unknown = editor.process_content(content)
     assert 'locales/locales_to_be_generated="en_US.UTF-8 UTF-8"' in result
     assert "# You are using" in result
+    assert unknown == []
 
 
-# Tests for package detection
+# Tests for unknown keys
 
-def test_detect_tzdata_by_areas():
-    content = 'tzdata/Areas="Europe"\n'
-    result = editor.detect_and_process(content)
+def test_unknown_key_is_reported():
+    content = 'some-other-package/option="something"'
+    result, unknown = editor.process_content(content)
+    assert unknown == ["some-other-package/option"]
+
+
+def test_multiple_unknown_keys():
+    content = dedent("""\
+        unknown/key1="value1"
+        unknown/key2="value2"
+        """)
+    result, unknown = editor.process_content(content)
+    assert "unknown/key1" in unknown
+    assert "unknown/key2" in unknown
+
+
+def test_mixed_known_and_unknown_keys():
+    content = dedent("""\
+        tzdata/Areas="Europe"
+        unknown/key="value"
+        """)
+    result, unknown = editor.process_content(content)
     assert 'tzdata/Areas="Etc"' in result
-
-
-def test_detect_tzdata_by_zones():
-    content = 'tzdata/Zones/Europe="Prague"\n'
-    result = editor.detect_and_process(content)
-    assert 'tzdata/Zones/Europe="UTC"' in result
-
-
-def test_detect_locales_by_locales_to_be_generated():
-    content = 'locales/locales_to_be_generated=""\n'
-    result = editor.detect_and_process(content)
-    assert 'locales/locales_to_be_generated="en_US.UTF-8 UTF-8"' in result
-
-
-def test_detect_locales_by_default_environment_locale():
-    content = 'locales/default_environment_locale="cs_CZ.UTF-8"\n'
-    result = editor.detect_and_process(content)
-    assert 'locales/default_environment_locale="en_US.UTF-8"' in result
-
-
-def test_unknown_package_unchanged():
-    content = 'some-other-package/option="something"\n'
-    result = editor.detect_and_process(content)
-    assert result == content
+    assert unknown == ["unknown/key"]
 
 
 # Edge case tests
 
 def test_empty_content():
-    result = editor.detect_and_process("")
+    result, unknown = editor.process_content("")
     assert result == ""
+    assert unknown == []
+
+
+def test_only_comments():
+    content = dedent("""\
+        # Comment line
+        # Another comment
+        ###############################################################################
+        """)
+    result, unknown = editor.process_content(content)
+    assert "# Comment line" in result
+    assert "# Another comment" in result
+    assert unknown == []
 
 
 def test_preserves_comments():
@@ -137,21 +175,23 @@ def test_preserves_comments():
         # Comment line
         # Another comment
         locales/locales_to_be_generated=""
-        # Trailing comment
-        """)
-    result = editor.process_locales(content)
+        # Trailing comment""")
+    result, unknown = editor.process_content(content)
     assert "# Comment line" in result
     assert "# Another comment" in result
     assert "# Trailing comment" in result
+    assert unknown == []
 
 
 def test_handles_empty_value():
-    content = 'locales/locales_to_be_generated=""\n'
-    result = editor.process_locales(content)
+    content = 'locales/locales_to_be_generated=""'
+    result, unknown = editor.process_content(content)
     assert 'locales/locales_to_be_generated="en_US.UTF-8 UTF-8"' in result
+    assert unknown == []
 
 
 def test_handles_existing_value():
-    content = 'locales/locales_to_be_generated="cs_CZ.UTF-8 UTF-8, de_DE.UTF-8 UTF-8"\n'
-    result = editor.process_locales(content)
+    content = 'locales/locales_to_be_generated="cs_CZ.UTF-8 UTF-8, de_DE.UTF-8 UTF-8"'
+    result, unknown = editor.process_content(content)
     assert 'locales/locales_to_be_generated="en_US.UTF-8 UTF-8"' in result
+    assert unknown == []

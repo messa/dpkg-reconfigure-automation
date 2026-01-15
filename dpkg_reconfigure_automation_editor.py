@@ -12,56 +12,78 @@ Supported packages:
 
 from argparse import ArgumentParser
 from pathlib import Path
-from re import MULTILINE, sub
+from re import match
+from sys import exit, stderr
+
+# Mapping of known configuration keys to their desired values
+# Keys starting with ~ are treated as regex patterns
+CONFIG_VALUES = {
+    "tzdata/Areas": "Etc",
+    "~tzdata/Zones/.+": "UTC",
+    "locales/locales_to_be_generated": "en_US.UTF-8 UTF-8",
+    "locales/default_environment_locale": "en_US.UTF-8",
+}
 
 
-def process_tzdata(content: str) -> str:
-    """Configure tzdata to use UTC timezone."""
-    # Set Areas to Etc
-    content = sub(
-        r'^(tzdata/Areas=)".*"',
-        r'\1"Etc"',
-        content,
-        flags=MULTILINE
-    )
-    # Set timezone to UTC (for any Zones/* question)
-    content = sub(
-        r'^(tzdata/Zones/[^=]+=)".*"',
-        r'\1"UTC"',
-        content,
-        flags=MULTILINE
-    )
-    return content
+def parse_line(line: str) -> tuple[str, str] | None:
+    """Parse a configuration line and return (key, value) or None if not a config line."""
+    line = line.strip()
+    if not line or line.startswith("#"):
+        return None
+
+    if "=" not in line:
+        return None
+
+    key, value = line.split("=", 1)
+    # Remove quotes from value
+    if value.startswith('"') and value.endswith('"'):
+        value = value[1:-1]
+    return key, value
 
 
-def process_locales(content: str) -> str:
-    """Configure locales to use en_US.UTF-8."""
-    # Set locales to generate
-    content = sub(
-        r'^(locales/locales_to_be_generated=)".*"',
-        r'\1"en_US.UTF-8 UTF-8"',
-        content,
-        flags=MULTILINE
-    )
-    # Set default locale
-    content = sub(
-        r'^(locales/default_environment_locale=)".*"',
-        r'\1"en_US.UTF-8"',
-        content,
-        flags=MULTILINE
-    )
-    return content
+def find_config_value(key: str) -> str | None:
+    """Find the configured value for a key, supporting regex patterns."""
+    # First try exact match
+    if key in CONFIG_VALUES:
+        return CONFIG_VALUES[key]
+
+    # Then try regex patterns (keys starting with ~)
+    for pattern, value in CONFIG_VALUES.items():
+        if pattern.startswith("~"):
+            if match(pattern[1:] + "$", key):
+                return value
+
+    return None
 
 
-def detect_and_process(content: str) -> str:
-    """Detect package type and process accordingly."""
-    if 'tzdata/Areas=' in content or 'tzdata/Zones/' in content:
-        return process_tzdata(content)
-    elif 'locales/locales_to_be_generated=' in content or 'locales/default_environment_locale=' in content:
-        return process_locales(content)
-    else:
-        # Unknown package, return unchanged
-        return content
+def process_content(content: str) -> tuple[str, list[str]]:
+    """
+    Process the content and return (processed_content, unknown_keys).
+
+    Only processes non-empty, non-comment lines.
+    Returns list of unknown keys that were encountered.
+    """
+    lines = content.splitlines()
+    result_lines = []
+    unknown_keys = []
+
+    for line in lines:
+        parsed = parse_line(line)
+        if parsed is None:
+            # Empty line or comment - keep as-is
+            result_lines.append(line)
+            continue
+
+        key, _old_value = parsed
+        new_value = find_config_value(key)
+
+        if new_value is None:
+            unknown_keys.append(key)
+            result_lines.append(line)
+        else:
+            result_lines.append(f'{key}="{new_value}"')
+
+    return "\n".join(result_lines), unknown_keys
 
 
 def main(args=None):
@@ -73,7 +95,13 @@ def main(args=None):
 
     filepath = Path(parsed.file)
     content = filepath.read_text()
-    processed = detect_and_process(content)
+    processed, unknown_keys = process_content(content)
+
+    if unknown_keys:
+        for key in unknown_keys:
+            print(f"Error: Unknown configuration key: {key}", file=stderr)
+        exit(1)
+
     filepath.write_text(processed)
 
 
