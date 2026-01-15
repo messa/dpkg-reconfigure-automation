@@ -15,6 +15,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: repo
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -22,7 +24,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install package with pip
-        run: python3 -m pip install .
+        run: python3 -m pip install repo
 
       - name: Verify installation
         run: |
@@ -41,6 +43,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: repo
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -51,10 +55,10 @@ jobs:
         run: python3 -m pip install build
 
       - name: Build wheel
-        run: python3 -m build
+        run: python3 -m build repo
 
       - name: Install from wheel
-        run: python3 -m pip install dist/*.whl
+        run: python3 -m pip install repo/dist/*.whl
 
       - name: Verify installation
         run: |
