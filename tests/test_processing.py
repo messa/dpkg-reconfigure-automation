@@ -12,8 +12,8 @@ from dpkg_reconfigure_automation_editor import (
     process_content,
 )
 
-
 # Tests for parse_line
+
 
 def test_parse_line_returns_key_value():
     result = parse_line('tzdata/Areas="Europe"')
@@ -36,6 +36,7 @@ def test_parse_line_returns_none_for_separator():
 
 # Tests for ConfigValues
 
+
 def test_config_values_exact_match():
     config = ConfigValues()
     assert config.get("tzdata/Areas") == "None of the above"
@@ -56,6 +57,7 @@ def test_config_values_unknown():
 
 
 # Tests for tzdata processing
+
 
 def test_tzdata_sets_area_to_etc():
     content = 'tzdata/Areas="Europe"'
@@ -98,6 +100,7 @@ def test_tzdata_full_config():
 
 # Tests for get_locales
 
+
 def test_get_locales_returns_english_on_non_cz_server():
     locales = list(ConfigValues.get_locales(fqdn="server.example.com"))
     assert locales == ["en_US.UTF-8 UTF-8"]
@@ -109,6 +112,7 @@ def test_get_locales_returns_czech_and_english_on_cz_server():
 
 
 # Tests for locales processing
+
 
 def test_locales_sets_locales_to_generate():
     content = 'locales/locales_to_be_generated=""'
@@ -143,6 +147,7 @@ def test_locales_full_config():
 
 # Tests for unknown keys
 
+
 def test_unknown_key_is_reported():
     content = 'some-other-package/option="something"'
     result, unknown = process_content(content, check=False)
@@ -170,6 +175,7 @@ def test_mixed_known_and_unknown_keys():
 
 
 # Edge case tests
+
 
 def test_empty_content():
     result, unknown = process_content("")
@@ -231,6 +237,7 @@ def test_no_trailing_newline_when_input_has_none():
 
 
 # Tests for choice validation (check=True)
+
 
 def test_tzdata_accepts_value_when_in_choices():
     content = dedent("""\
