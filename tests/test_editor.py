@@ -57,37 +57,52 @@ def test_script_does_not_modify_file_on_unknown_key(tmp_path):
 
 
 def test_script_processes_tzdata(tmp_path):
-    content = dedent("""\
-        # (Choices: GMT, UTC, None of the above)
+    content_1 = dedent("""\
         # Geographic area:
-        tzdata/Areas="GMT"
-        # (Choices: GMT, UTC)
+        # (Choices: Europe, None of the above)
+        tzdata/Areas="Europe"
+    """)
+    content_2 = dedent("""\
         # Time zone:
+        # (Choices: GMT, UTC)
         tzdata/Zones/Etc="GMT"
-        """)
+    """)
     filepath = tmp_path / "config.txt"
-    filepath.write_text(content)
 
-    result = run([executable, str(SCRIPT_PATH), str(filepath)], capture_output=True)
-    assert result.returncode == 0
+    filepath.write_text(content_1)
+    run([executable, str(SCRIPT_PATH), str(filepath)], capture_output=True, check=True)
     file_content = filepath.read_text()
-    assert 'tzdata/Areas="None of the above"' in file_content
-    assert 'tzdata/Zones/Etc="UTC"' in file_content
+    assert file_content == dedent("""\
+        # Geographic area:
+        # (Choices: Europe, None of the above)
+        tzdata/Areas="None of the above"
+    """)
+
+    filepath.write_text(content_2)
+    run([executable, str(SCRIPT_PATH), str(filepath)], capture_output=True, check=True)
+    file_content = filepath.read_text()
+    assert file_content == dedent("""\
+        # Time zone:
+        # (Choices: GMT, UTC)
+        tzdata/Zones/Etc="UTC"
+    """)
 
 
 def test_script_with_overrides(tmp_path):
-    content = dedent("""\
-        # (Choices: Asia, Europe, None of the above)
+    content_1 = dedent("""\
         # Geographic area:
+        # (Choices: Asia, Europe, None of the above)
         tzdata/Areas="Europe"
-        # (Choices: Shanghai, Tokyo)
+    """)
+    content_2 = dedent("""\
         # Time zone:
+        # (Choices: Shanghai, Tokyo)
         tzdata/Zones/Asia="Tokyo"
-        """)
+    """)
     filepath = tmp_path / "config.txt"
-    filepath.write_text(content)
 
-    result = run(
+    filepath.write_text(content_1)
+    run(
         [
             executable,
             str(SCRIPT_PATH),
@@ -96,11 +111,23 @@ def test_script_with_overrides(tmp_path):
             str(filepath),
         ],
         capture_output=True,
+        check=True,
     )
-    assert result.returncode == 0
     file_content = filepath.read_text()
-    assert 'tzdata/Areas="Asia"' in file_content
-    assert 'tzdata/Zones/Asia="Shanghai"' in file_content
+    assert file_content == dedent("""\
+        # Geographic area:
+        # (Choices: Asia, Europe, None of the above)
+        tzdata/Areas="Asia"
+    """)
+
+    filepath.write_text(content_2)
+    run([executable, str(SCRIPT_PATH), str(filepath)], capture_output=True, check=True)
+    file_content = filepath.read_text()
+    assert file_content == dedent("""\
+        # Time zone:
+        # (Choices: Shanghai, Tokyo)
+        tzdata/Zones/Asia="Shanghai"
+    """)
 
 
 def test_script_with_override_with_spaces(tmp_path):
