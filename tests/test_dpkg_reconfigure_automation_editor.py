@@ -4,6 +4,7 @@
 from importlib import import_module
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from textwrap import dedent
 import sys
 
 import pytest
@@ -16,32 +17,35 @@ editor = import_module('dpkg-reconfigure-automation-editor')
 # Tests for tzdata processing
 
 def test_tzdata_sets_area_to_etc():
-    content = """Name: tzdata/Areas
-Value: Europe
-"""
+    content = dedent("""\
+        Name: tzdata/Areas
+        Value: Europe
+        """)
     result = editor.process_tzdata(content)
     assert "Value: Etc" in result
 
 
 def test_tzdata_sets_zone_to_utc():
-    content = """Name: tzdata/Zones/Etc
-Value: GMT
-"""
+    content = dedent("""\
+        Name: tzdata/Zones/Etc
+        Value: GMT
+        """)
     result = editor.process_tzdata(content)
     assert "Value: UTC" in result
 
 
 def test_tzdata_full_config():
-    content = """Name: tzdata/Areas
-Template: tzdata/Areas
-Value: Europe
-Owners: tzdata
+    content = dedent("""\
+        Name: tzdata/Areas
+        Template: tzdata/Areas
+        Value: Europe
+        Owners: tzdata
 
-Name: tzdata/Zones/Europe
-Template: tzdata/Zones/Europe
-Value: Prague
-Owners: tzdata
-"""
+        Name: tzdata/Zones/Europe
+        Template: tzdata/Zones/Europe
+        Value: Prague
+        Owners: tzdata
+        """)
     result = editor.process_tzdata(content)
     lines = result.split('\n')
 
@@ -60,17 +64,19 @@ Owners: tzdata
 # Tests for locales processing
 
 def test_locales_sets_locales_to_generate():
-    content = """Name: locales/locales_to_be_generated
-Value: cs_CZ.UTF-8 UTF-8
-"""
+    content = dedent("""\
+        Name: locales/locales_to_be_generated
+        Value: cs_CZ.UTF-8 UTF-8
+        """)
     result = editor.process_locales(content)
     assert "Value: en_US.UTF-8 UTF-8" in result
 
 
 def test_locales_sets_default_locale():
-    content = """Name: locales/default_environment_locale
-Value: cs_CZ.UTF-8
-"""
+    content = dedent("""\
+        Name: locales/default_environment_locale
+        Value: cs_CZ.UTF-8
+        """)
     result = editor.process_locales(content)
     assert "Value: en_US.UTF-8" in result
     # Should not have "UTF-8 UTF-8" for default locale
@@ -78,16 +84,17 @@ Value: cs_CZ.UTF-8
 
 
 def test_locales_full_config():
-    content = """Name: locales/locales_to_be_generated
-Template: locales/locales_to_be_generated
-Value: cs_CZ.UTF-8 UTF-8, de_DE.UTF-8 UTF-8
-Owners: locales
+    content = dedent("""\
+        Name: locales/locales_to_be_generated
+        Template: locales/locales_to_be_generated
+        Value: cs_CZ.UTF-8 UTF-8, de_DE.UTF-8 UTF-8
+        Owners: locales
 
-Name: locales/default_environment_locale
-Template: locales/default_environment_locale
-Value: cs_CZ.UTF-8
-Owners: locales
-"""
+        Name: locales/default_environment_locale
+        Template: locales/default_environment_locale
+        Value: cs_CZ.UTF-8
+        Owners: locales
+        """)
     result = editor.process_locales(content)
 
     assert "en_US.UTF-8 UTF-8" in result
@@ -139,9 +146,10 @@ def test_unknown_package_unchanged():
 # Tests for main function
 
 def test_main_processes_file_in_place():
-    content = """Name: locales/locales_to_be_generated
-Value: cs_CZ.UTF-8 UTF-8
-"""
+    content = dedent("""\
+        Name: locales/locales_to_be_generated
+        Value: cs_CZ.UTF-8 UTF-8
+        """)
     with NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
         f.write(content)
         filepath = Path(f.name)
@@ -168,13 +176,14 @@ def test_empty_content():
 
 
 def test_preserves_other_lines():
-    content = """# Comment line
-Name: locales/locales_to_be_generated
-Template: locales/locales_to_be_generated
-Value: cs_CZ.UTF-8 UTF-8
-Owners: locales
-# Another comment
-"""
+    content = dedent("""\
+        # Comment line
+        Name: locales/locales_to_be_generated
+        Template: locales/locales_to_be_generated
+        Value: cs_CZ.UTF-8 UTF-8
+        Owners: locales
+        # Another comment
+        """)
     result = editor.process_locales(content)
     assert "# Comment line" in result
     assert "# Another comment" in result
