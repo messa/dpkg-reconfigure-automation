@@ -123,9 +123,7 @@ def main(args=None):
     parser = ArgumentParser(
         description="Automate dpkg-reconfigure by modifying debconf editor files"
     )
-    parser.add_argument(
-        "--version", action="version", version=f"%(prog)s {__version__}"
-    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("file", help="Path to the debconf editor file")
     parsed = parser.parse_args(args)
 
