@@ -2,6 +2,7 @@
 
 A script you can use as `EDITOR` for `dpkg-reconfigure -f editor` to automate Debian configuration.
 
+
 ## Installation
 
 Install directly from GitHub:
@@ -22,6 +23,7 @@ uv pip install git+https://github.com/messa/dpkg-reconfigure-automation.git
 curl -fLsS https://raw.githubusercontent.com/messa/dpkg-reconfigure-automation/main/dpkg_reconfigure_automation_editor.py -o /usr/local/bin/dpkg-reconfigure-automation-editor
 chmod +x /usr/local/bin/dpkg-reconfigure-automation-editor
 ```
+
 
 ## Usage
 
@@ -46,6 +48,7 @@ Values with spaces need to be quoted:
 EDITOR="dpkg-reconfigure-automation-editor 'tzdata/Areas=None of the above' tzdata/Zones/Etc=UTC" dpkg-reconfigure -f editor tzdata
 ```
 
+
 ## This looks silly
 
 Yes it does :)
@@ -68,11 +71,12 @@ dpkg-reconfigure -f noninteractive locales
 - For tzdata, it chooses the UTC timezone (by default)
 - For locales, it chooses `en_US.UTF-8` (by default)
 
+
 ## Running tests
 
 ```shell
 uv sync
-uv run pytest
+uv run pytest -v tests
 ```
 
 Or with pip:
