@@ -246,7 +246,7 @@ def test_tzdata_rejects_value_when_not_in_choices():
         # Geographic area:
         tzdata/Areas="Europe"
         """)
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(editor.MissingChoiceError) as exc_info:
         editor.process_content(content, check=True)
     assert "Content does not contain string 'None of the above'" in str(exc_info.value)
 
@@ -268,7 +268,7 @@ def test_tzdata_zone_rejects_utc_when_not_in_choices():
         # Time zone:
         tzdata/Zones/Europe="Prague"
         """)
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(editor.MissingChoiceError) as exc_info:
         editor.process_content(content, check=True)
     assert "Content does not contain string 'UTC'" in str(exc_info.value)
 
@@ -290,7 +290,7 @@ def test_locales_rejects_value_when_not_in_choices():
         # Locales to be generated:
         locales/locales_to_be_generated=""
         """)
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(editor.MissingChoiceError) as exc_info:
         editor.process_content(content, check=True)
     assert "Content does not contain string 'en_US.UTF-8 UTF-8'" in str(exc_info.value)
 
@@ -302,7 +302,7 @@ def test_check_defaults_to_true():
         # Geographic area:
         tzdata/Areas="Europe"
         """)
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(editor.MissingChoiceError) as exc_info:
         editor.process_content(content)  # No check parameter
     assert "Content does not contain string 'None of the above'" in str(exc_info.value)
 

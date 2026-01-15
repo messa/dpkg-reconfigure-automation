@@ -17,6 +17,11 @@ from socket import getfqdn
 from sys import exit, stderr
 
 
+class MissingChoiceError(Exception):
+    """Raised when the configured value is not present in the available choices."""
+    pass
+
+
 class ConfigValues:
     """Configuration values with exact keys and regex patterns."""
 
@@ -104,7 +109,7 @@ def process_content(content: str, check: bool = True) -> tuple[str, list[str]]:
             if check and new_value not in content:
                 # Usually the content contains a list of all permitted values.
                 # The new_value seems to not be amongst them.
-                raise Exception(f'Content does not contain string {new_value!r}')
+                raise MissingChoiceError(f'Content does not contain string {new_value!r}')
             result_lines.append(f'{key}="{new_value}"' + ending)
 
     return "".join(result_lines), unknown_keys
