@@ -68,8 +68,10 @@ dpkg-reconfigure -f noninteractive locales
 
 ## What does it do
 
-- For tzdata, it chooses the UTC timezone (by default)
-- For locales, it chooses `en_US.UTF-8` (by default)
+Default behavior if you don't specify custom key=value arguments:
+
+- For tzdata, it chooses the UTC timezone
+- For locales, it chooses `en_US.UTF-8` + value of env variable EXTRA_LOCALES (if specified) + `cs_CZ.UTF-8` (if machine fqdn ends with `.cz`)
 
 
 ## Running tests
