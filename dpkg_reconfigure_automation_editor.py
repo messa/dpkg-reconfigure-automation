@@ -125,28 +125,28 @@ def process_content(content: str, config: ConfigValues | None = None) -> tuple[s
             result_lines.append(line)
             continue
 
-        key, _old_value = parsed
+        key, old_value = parsed
         new_value = config.get(key)
 
         if new_value is None:
             logger.error("Unknown configuration key: %r", stripped)
             unknown_keys.append(key)
             result_lines.append(line)
+        elif new_value == old_value:
+            logger.debug("Already set: %r", stripped)
+            result_lines.append(line)
         else:
+            logger.debug("Updating %r to value %r", stripped, new_value)
+            result_lines.append(f'{key}="{new_value}"' + ending)
             for new_value_part in new_value.split(", "):
                 if new_value_part not in content:
                     # Usually the content contains a list of all permitted values.
                     # The new_value seems to not be amongst them.
                     logger.warning(
-                        "Updating %r to value %r, but content does not contain string %r",
-                        stripped,
-                        new_value,
+                        "Content does not contain string %r",
                         new_value_part,
                     )
-                    unknown_values.append(new_value)
-            else:
-                logger.debug("Updating %r to value %r", stripped, new_value)
-            result_lines.append(f'{key}="{new_value}"' + ending)
+                    unknown_values.append(new_value_part)
 
     return "".join(result_lines), unknown_keys, unknown_values
 
