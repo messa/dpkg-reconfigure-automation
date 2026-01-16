@@ -53,7 +53,7 @@ EDITOR="dpkg-reconfigure-automation-editor 'tzdata/Areas=None of the above' tzda
 
 Yes it does :)
 
-There should be an easier solution. But it isn't.
+There should be an easier solution, right?
 
 There is a **debconf** system that you can use to configure default values (via `debconf-set-selections`) that will be used when installing new packages.
 But once a package is installed, actual configuration files or system state are preferred and the debconf selections are ignored.
