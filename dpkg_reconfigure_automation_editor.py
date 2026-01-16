@@ -20,7 +20,7 @@ from sys import exit, stderr
 from tempfile import gettempdir
 
 # Also update version in pyproject.toml
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 logger = getLogger(__name__)
 
