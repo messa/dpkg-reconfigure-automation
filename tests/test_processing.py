@@ -384,3 +384,21 @@ def test_full_tzdata_zones_content_with_check():
     assert 'tzdata/Zones/Etc="UTC"' in result
     assert unknown == []
     assert unknown_values == []
+
+
+def test_multiline_choices_comment():
+    """Test that choices split across multiple lines are parsed correctly."""
+    content = dedent("""\
+        # Please select the geographic area in which you live. Subsequent configuration questions will narrow this down by presenting a list
+        # of cities, representing the time zones in which they are located.
+        #
+        # (Choices: Africa, Americas, Antarctica, Arctic Ocean, Asia, Atlantic Ocean, Australia, Europe, Indian Ocean, Pacific Ocean, None of
+        # the above)
+        # Geographic area:
+        tzdata/Areas="Europe"
+        """)
+    result, unknown, unknown_values = process_content(content)
+    # Should select "None of the above" even when split across lines
+    assert 'tzdata/Areas="None of the above"' in result
+    assert unknown == []
+    assert unknown_values == []

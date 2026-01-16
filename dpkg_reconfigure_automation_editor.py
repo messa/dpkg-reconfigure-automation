@@ -50,8 +50,12 @@ class ConfigValues:
         #
         # Want to add defaults here? Open a PR or GitHub Issue!
 
+        # Check for "None of the above" even when split across lines like "None of\n# the above"
+        content_flat = content.replace("\n# ", " ") if content else ""
+        has_none_of_the_above = "None of the above" in content_flat
+
         self.exact = {
-            "tzdata/Areas": "None of the above" if (content and "None of the above" in content) else "Etc",
+            "tzdata/Areas": "None of the above" if has_none_of_the_above else "Etc",
             "tzdata/Zones/Etc": "UTC",
             "locales/locales_to_be_generated": lambda: ", ".join(sorted(self.get_locales())),
             "locales/default_environment_locale": "en_US.UTF-8",
@@ -109,6 +113,8 @@ def process_content(content: str, config: ConfigValues | None = None) -> tuple[s
     """
     if config is None:
         config = ConfigValues(content=content)
+    # Flatten content for checking values that may be split across lines
+    content_flat = content.replace("\n# ", " ")
     lines = content.splitlines(True)
     result_lines = []
     unknown_keys = []
@@ -139,7 +145,7 @@ def process_content(content: str, config: ConfigValues | None = None) -> tuple[s
             logger.debug("Updating %r to value %r", stripped, new_value)
             result_lines.append(f'{key}="{new_value}"' + ending)
             for new_value_part in new_value.split(", "):
-                if new_value_part not in content:
+                if new_value_part not in content_flat:
                     # Usually the content contains a list of all permitted values.
                     # The new_value seems to not be amongst them.
                     logger.warning(
