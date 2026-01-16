@@ -138,7 +138,10 @@ def process_content(content: str, config: ConfigValues | None = None) -> tuple[s
                     # Usually the content contains a list of all permitted values.
                     # The new_value seems to not be amongst them.
                     logger.warning(
-                        "Updating %r to value %r, but content does not contain string %r", stripped, new_value, new_value_part
+                        "Updating %r to value %r, but content does not contain string %r",
+                        stripped,
+                        new_value,
+                        new_value_part,
                     )
                     unknown_values.append(new_value)
             else:
